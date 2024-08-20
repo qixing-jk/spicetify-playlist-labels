@@ -4,6 +4,10 @@ Adds playlist labels to your tracklist indicating the playlists in which a track
 
 ![Screenshot](screenshot.png)
 
+## Archival
+
+I am not longer interested in maintaining this project. Please feel free to fork it.
+
 ## Install
 Install [Spicetify](https://spicetify.app) and install "Playlist Labels" from the Marketplace.
 
