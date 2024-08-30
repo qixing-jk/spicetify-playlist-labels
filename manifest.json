@@ -5,7 +5,8 @@
   "main": "dist/spicetify-playlist-labels.js",
   "readme": "README.md",
   "authors": [
-      { "name": "Scott Duffey", "url": "https://github.com/duffey" }
+      { "name": "Scott Duffey", "url": "https://github.com/duffey" },
+      { "name": "qixing-jk", "url": "https://github.com/qixing-jk" }
   ],
   "tags": ["playlist", "label", "tag", "tracklist"]
 }

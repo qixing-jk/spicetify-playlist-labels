@@ -4,12 +4,13 @@ Adds playlist labels to your tracklist indicating the playlists in which a track
 
 ![Screenshot](screenshot.png)
 
-## Archival
-
-I am not longer interested in maintaining this project. Please feel free to fork it.
-
 ## Install
 Install [Spicetify](https://spicetify.app) and install "Playlist Labels" from the Marketplace.
+
+## Thanks
+Thanks to [Scott Duffey](https://github.com/duffey) who made this awesome extension for people who wish to know the playlist where the track is located!
+
+**I'm just working on a compatibility update based on the issues I've had with it, no new features for now!**
 
 ## Star Rating Playlist Images
 
