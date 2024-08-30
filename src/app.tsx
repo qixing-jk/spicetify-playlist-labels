@@ -85,6 +85,7 @@ function updateTracklist() {
         const tracks = tracklist.getElementsByClassName("main-trackList-trackListRow");
         for (const track of tracks) {
             const trackStyle = getComputedStyle(track);
+            document.querySelector("#stats-app .main-rootlist-wrapper")?.style.setProperty('--row-height', trackStyle.height);
             const trackRowHeight = trackStyle.getPropertyValue('--row-height');
             if (trackRowHeight != rowHeight) {
                 rowHeight = trackRowHeight;
