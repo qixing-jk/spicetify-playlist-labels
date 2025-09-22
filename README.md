@@ -1,5 +1,7 @@
 # Spicetify Playlist Labels
 
+[简体中文](README_zh-CN.md) | [English](README.md)
+
 Adds playlist labels to your tracklist indicating the playlists in which a track is included. Clicking a label jumps to the playlist.
 
 ![Screenshot](screenshot.png)
