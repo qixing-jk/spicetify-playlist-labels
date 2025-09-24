@@ -2,25 +2,32 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './app.css'
-import { removeTrackFromPlaylist } from "./api";
-import { getTrackUriToPlaylistData, updatePlaylistData, updateLikedTracks } from "./playlist";
+import {removeTrackFromPlaylist} from "./api";
+import {getTrackUriToPlaylistData, updateLikedTracks, updatePlaylistData} from "./playlist";
 import {getFiberFromDom, getParentProps} from "./utilties";
 
 // Global state variables to manage the DOM and application state.
 let oldMainElement = null; // Stores the previous main element to detect changes.
-let mainElement = null; // The main container element of the Spotify client.
-let mainElementObserver = null; // Observes changes in the main element.
-let tracklists = []; // Holds the current tracklist elements on the page.
+let mainElement: HTMLElement | null = null; // The main container element of the Spotify client.
+let mainElementObserver: MutationObserver; // Observes changes in the main element.
+let tracklists: HTMLElement[] = []; // Holds the current tracklist elements on the page.
 let oldTracklists = []; // Holds the previous tracklist elements to detect changes.
-let trackUriToPlaylistData = {}; // Maps track URIs to their associated playlist data.
+let trackUriToPlaylistData: Record<string, {
+    isOwnPlaylist: any;
+    isLikedTracks: any;
+    uri: string;
+    name: string | undefined;
+    trackUid: any;
+    image: string | undefined;
+}> = {}; // Maps track URIs to their associated playlist data.
 let playlistUpdated = false; // Flag to indicate if the playlist data has been updated.
 let showAllPlaylists = false; // Flag to toggle showing all playlists or only user-owned ones.
-let highlightTrack = null; // The URI of the track to be highlighted on navigation.
-let highlightTrackPath = null; // The path to navigate to for highlighting a track.
+let highlightTrack: string | null = null; // The URI of the track to be highlighted on navigation.
+let highlightTrackPath: string | null = null; // The path to navigate to for highlighting a track.
 let maxExistingLabelCount = 0; // The maximum number of labels any track currently has.
 let maxLabelCount = 1; // The maximum number of labels to display per track, based on screen width.
 let rowHeight = '56px'; // The height of a track row, used for layout calculations.
-let mainView = null; // The main view container for observing resize events.
+let mainView: Element | null; // The main view container for observing resize events.
 let updatePromise = Promise.resolve(); // A promise chain to serialize data updates.
 
 /**
@@ -28,7 +35,7 @@ let updatePromise = Promise.resolve(); // A promise chain to serialize data upda
  * @param {string} uri - The Spotify playlist URI (e.g., "spotify:playlist:...")
  * @returns {string} The playlist ID.
  */
-function playlistUriToPlaylistId(uri) {
+function playlistUriToPlaylistId(uri: { match: (arg0: RegExp) => any[]; }) {
     return uri.match(/spotify:playlist:(.*)/)[1];
 }
 
@@ -38,12 +45,12 @@ function playlistUriToPlaylistId(uri) {
  * @param {any} tracklistElement - The tracklist row's React component instance.
  * @returns {string | null} The track URI or null if not found.
  */
-function getTracklistTrackUri(tracklistElement: Element):string|null {
-    const tracklistParentElement=tracklistElement.parentElement;
+function getTracklistTrackUri(tracklistElement: Element): string | null {
+    const tracklistParentElement = tracklistElement.parentElement;
     if (!tracklistParentElement) return null;
     const tracklistParentFiber = getFiberFromDom(tracklistParentElement);
     if (!tracklistParentFiber) return null;
-    const tracklistParentProps = getParentProps(tracklistParentFiber,fiber => {
+    const tracklistParentProps = getParentProps(tracklistParentFiber, fiber => {
         const props = fiber.memoizedProps || fiber.pendingProps;
         return props && props.uri
     });
@@ -124,6 +131,7 @@ function updateTracklist() {
             }
 
             const trackUri = getTracklistTrackUri(track);
+            if (!trackUri) continue;
             // If this track is meant to be highlighted after navigation, simulate a click.
             if (highlightTrack === trackUri && Spicetify.Platform.History.location.pathname === highlightTrackPath) {
                 (track as HTMLElement).click();
@@ -166,90 +174,96 @@ function updateTracklist() {
             if (!labelContainer) {
                 // Create a new div to hold the labels and inject it into the track row.
                 let lastColumn = track.querySelector(".main-trackList-rowSectionEnd");
-                labelContainer = document.createElement("div");
-                labelContainer.classList.add("spicetify-playlist-labels");
+                if (lastColumn) {
 
-                let containerClassName = 'spicetify-playlist-labels-labels-container';
+                    labelContainer = document.createElement("div");
+                    labelContainer.classList.add("spicetify-playlist-labels");
 
-                // Add an overflow class if the number of labels exceeds the displayable limit.
-                if (filteredPlaylistData.length > maxLabelCount) {
-                    containerClassName += ' spicetify-playlist-labels-overflow';
+                    let containerClassName = 'spicetify-playlist-labels-labels-container';
+
+                    // Add an overflow class if the number of labels exceeds the displayable limit.
+                    if (filteredPlaylistData.length > maxLabelCount) {
+                        containerClassName += ' spicetify-playlist-labels-overflow';
+                    }
+
+                    // Slice the data to only render the number of labels that can fit.
+                    filteredPlaylistData = filteredPlaylistData.slice(0, maxLabelCount)
+
+                    // Use ReactDOM to render the React components into the newly created container.
+                    ReactDOM.render(
+                        <div className={containerClassName}>
+                            {
+                                filteredPlaylistData.map((playlistData) => {
+                                    // Redundant filter check, but ensures correctness.
+                                    if (!showAllPlaylists && !playlistData.isOwnPlaylist) return null;
+
+                                    if (!playlistData.isLikedTracks) {
+                                        const playlistId = playlistUriToPlaylistId(playlistData.uri);
+                                        if (Spicetify.Platform.History.location.pathname === `/playlist/${playlistId}`) return null;
+                                    } else if (Spicetify.Platform.History.location.pathname === '/collection/tracks') {
+                                        return null;
+                                    }
+
+                                    // Each label is wrapped in a Tooltip and a RightClickMenu.
+                                    return (
+                                        <Spicetify.ReactComponent.TooltipWrapper
+                                            label={playlistData.name}
+                                            placement="top"
+                                        >
+                                            <div>
+                                                <Spicetify.ReactComponent.RightClickMenu placement="bottom-end"
+                                                                                         menu={playlistData.isLikedTracks ? null :
+                                                                                             // The context menu for removing a track from a playlist.
+                                                                                             <Spicetify.ReactComponent.Menu>
+                                                                                                 <Spicetify.ReactComponent.MenuItem
+                                                                                                     leadingIcon={
+                                                                                                         <Spicetify.ReactComponent.IconComponent
+                                                                                                             dangerouslySetInnerHTML={{__html: Spicetify.SVGIcons.trash}}
+                                                                                                             iconSize={16}
+                                                                                                             style={{color: "var(--text-subdued)"}}
+                                                                                                         />
+                                                                                                     } onClick={
+                                                                                                     (e: Event) => {
+                                                                                                         e.stopPropagation();
+                                                                                                         // API call to remove the track.
+                                                                                                         removeTrackFromPlaylist(playlistData.uri, trackUri);
+                                                                                                         // Optimistically update the UI.
+                                                                                                         trackUriToPlaylistData[trackUri] = trackUriToPlaylistData[trackUri].filter((otherPlaylistData) => otherPlaylistData.uri !== playlistData.uri);
+                                                                                                         playlistUpdated = true;
+                                                                                                         updateTracklist();
+                                                                                                     }
+                                                                                                 }>Remove
+                                                                                                     from {playlistData.name}</Spicetify.ReactComponent.MenuItem>
+                                                                                             </Spicetify.ReactComponent.Menu>
+                                                                                         }>
+                                                    <div className="spicetify-playlist-labels-label-container" style={{
+                                                        cursor: 'pointer',
+                                                    }} onClick={(e: Event) => {
+                                                        // Handle click to navigate to the playlist.
+                                                        e.stopPropagation();
+                                                        const path = playlistData.isLikedTracks ? '/collection/tracks' : Spicetify.URI.fromString(playlistData.uri)?.toURLPath(true);
+                                                        // Set track to be highlighted on the target page.
+                                                        highlightTrack = trackUri;
+                                                        highlightTrackPath = path;
+                                                        if (path) Spicetify.Platform.History.push({
+                                                            pathname: path,
+                                                            search: `?uid=${playlistData.trackUid}`
+                                                        });
+                                                    }}>
+                                                        <img src={playlistData.image} alt={playlistData.name}/>
+                                                    </div>
+                                                </Spicetify.ReactComponent.RightClickMenu>
+                                            </div>
+                                        </Spicetify.ReactComponent.TooltipWrapper>
+                                    );
+                                })
+                            }
+                        </div>
+                        , labelContainer);
+
+                    // Insert the new label container into the DOM.
+                    lastColumn.insertBefore(labelContainer, lastColumn.firstChild);
                 }
-
-                // Slice the data to only render the number of labels that can fit.
-                filteredPlaylistData = filteredPlaylistData.slice(0, maxLabelCount)
-
-                // Use ReactDOM to render the React components into the newly created container.
-                ReactDOM.render(
-                    <div className={containerClassName}>
-                        {
-                            filteredPlaylistData.map((playlistData) => {
-                                // Redundant filter check, but ensures correctness.
-                                if (!showAllPlaylists && !playlistData.isOwnPlaylist) return null;
-
-                                if (!playlistData.isLikedTracks) {
-                                    const playlistId = playlistUriToPlaylistId(playlistData.uri);
-                                    if (Spicetify.Platform.History.location.pathname === `/playlist/${playlistId}`) return null;
-                                } else if (Spicetify.Platform.History.location.pathname === '/collection/tracks') {
-                                    return null;
-                                }
-
-                                // Each label is wrapped in a Tooltip and a RightClickMenu.
-                                return (
-                                    <Spicetify.ReactComponent.TooltipWrapper
-                                        label={playlistData.name}
-                                        placement="top"
-                                    >
-                                        <div>
-                                            <Spicetify.ReactComponent.RightClickMenu placement="bottom-end" menu={ playlistData.isLikedTracks ? null :
-                                                // The context menu for removing a track from a playlist.
-                                                <Spicetify.ReactComponent.Menu>
-                                                    <Spicetify.ReactComponent.MenuItem leadingIcon={
-                                                        <Spicetify.ReactComponent.IconComponent
-                                                            dangerouslySetInnerHTML={{ __html: Spicetify.SVGIcons.trash }}
-                                                            iconSize={16}
-                                                            style={{ color: "var(--text-subdued)" }}
-                                                        />
-                                                    } onClick={
-                                                        (e: Event) => {
-                                                            e.stopPropagation();
-                                                            // API call to remove the track.
-                                                            removeTrackFromPlaylist(playlistData.uri, trackUri);
-                                                            // Optimistically update the UI.
-                                                            trackUriToPlaylistData[trackUri] = trackUriToPlaylistData[trackUri].filter((otherPlaylistData) => otherPlaylistData.uri !== playlistData.uri);
-                                                            playlistUpdated = true;
-                                                            updateTracklist();
-                                                        }
-                                                    }>Remove from {playlistData.name}</Spicetify.ReactComponent.MenuItem>
-                                                </Spicetify.ReactComponent.Menu>
-                                            }>
-                                                <div className="spicetify-playlist-labels-label-container" style={{
-                                                    cursor: 'pointer',
-                                                }} onClick={(e: Event) => {
-                                                    // Handle click to navigate to the playlist.
-                                                    e.stopPropagation();
-                                                    const path = playlistData.isLikedTracks ? '/collection/tracks' : Spicetify.URI.fromString(playlistData.uri)?.toURLPath(true);
-                                                    // Set track to be highlighted on the target page.
-                                                    highlightTrack = trackUri;
-                                                    highlightTrackPath = path;
-                                                    if (path) Spicetify.Platform.History.push({
-                                                        pathname: path,
-                                                        search: `?uid=${playlistData.trackUid}`
-                                                    });
-                                                }}>
-                                                    <img src={playlistData.image} alt={playlistData.name} />
-                                                </div>
-                                            </Spicetify.ReactComponent.RightClickMenu>
-                                        </div>
-                                    </Spicetify.ReactComponent.TooltipWrapper>
-                                );
-                            })
-                        }
-                    </div>
-                    , labelContainer);
-
-                // Insert the new label container into the DOM.
-                lastColumn.insertBefore(labelContainer, lastColumn.firstChild);
             }
         }
 
@@ -294,7 +308,7 @@ async function main() {
     showAllPlaylists = JSON.parse(localStorage.getItem('spicetify-playlist-labels:show-all') || 'false');
 
     // Helper function to update the data map and trigger a UI refresh.
-    const getDataAndUpdateTracklist = (promise) => {
+    const getDataAndUpdateTracklist = (promise: Promise<any>) => {
         promise.then((data) => {
             trackUriToPlaylistData = data;
             playlistUpdated = true;
@@ -303,14 +317,20 @@ async function main() {
     }
 
     // Listen for changes in the user's library (e.g., liking/unliking a track).
-    await Spicetify.Platform.LibraryAPI.getEvents().addListener('update', (event) => {
-        updatePromise = updatePromise.then(() => { return updateLikedTracks() });
+    await Spicetify.Platform.LibraryAPI.getEvents().addListener('update', () => {
+        updatePromise = updatePromise.then(() => {
+            return updateLikedTracks()
+        });
         getDataAndUpdateTracklist(updatePromise);
     });
 
     // Listen for playlist operations (e.g., adding/removing tracks).
-    await Spicetify.Platform.PlaylistAPI.getEvents().addListener('operation_complete', (event) => {
-        updatePromise = updatePromise.then(() => { return updatePlaylistData(event.data.uri) });
+    await Spicetify.Platform.PlaylistAPI.getEvents().addListener('operation_complete', (event: {
+        data: { uri: any; };
+    }) => {
+        updatePromise = updatePromise.then(() => {
+            return updatePlaylistData(event.data.uri)
+        });
         getDataAndUpdateTracklist(updatePromise);
     });
 
@@ -349,7 +369,9 @@ async function main() {
         calculateMaxLabelCount();
     });
 
-    resizeObserver.observe(mainView);
+    if (mainView) {
+        resizeObserver.observe(mainView);
+    }
 }
 
 export default main;
