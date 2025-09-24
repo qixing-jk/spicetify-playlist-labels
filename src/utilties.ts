@@ -1,11 +1,17 @@
+interface DomWithFiber extends HTMLElement {
+    [key: string]: any;
+}
+
 /**
  * 从 DOM 节点获取对应的 React Fiber 节点
  * 支持 React 17/18
  */
-export function getFiberFromDom(dom) {
-    for (const key in dom) {
+export function getFiberFromDom(dom: HTMLElement) {
+    const fiberDom=dom as DomWithFiber
+    const props = Object.getOwnPropertyNames(fiberDom);
+    for (const key of props) {
         if (key.startsWith("__reactFiber$") || key.startsWith("__reactInternalInstance$")) {
-            return dom[key];
+            return fiberDom[key];
         }
     }
     return null;
@@ -17,7 +23,7 @@ export function getFiberFromDom(dom) {
  * @param {Function} filterFn - 可选，过滤函数，返回 true 表示匹配目标父组件
  * @returns {Object|null} - 找到的父组件 props 或 null
  */
-export function getParentProps(fiber, filterFn= (parent: any) => true) {
+export function getParentProps(fiber: { return: any; }, filterFn= (parent: any) => true) {
     if (!fiber) return null;
 
     let parent = fiber.return; // Fiber 父节点
