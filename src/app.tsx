@@ -243,6 +243,7 @@ function updateTracklist() {
                                                                                                      from {playlistData.name}</Spicetify.ReactComponent.MenuItem>
                                                                                              </Spicetify.ReactComponent.Menu>
                                                                                          }>
+                                                    {/*playlist-label-icon*/}
                                                     <div className="spicetify-playlist-labels-label-container" style={{
                                                         cursor: 'pointer',
                                                     }} onClick={(e: React.MouseEvent) => {
