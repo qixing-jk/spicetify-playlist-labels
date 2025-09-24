@@ -25,6 +25,7 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
     onNavigateToPlaylist(playlistData, trackUri);
   };
 
+  // todo: fix context menu crash issue, temporarily disable it
   const contextMenu = playlistData.isLikedTracks ? null : (
     <Spicetify.ReactComponent.Menu>
       <Spicetify.ReactComponent.MenuItem
@@ -48,10 +49,10 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
       placement="top"
     >
       <div>
-        <Spicetify.ReactComponent.RightClickMenu 
-          placement="bottom-end"
-          menu={contextMenu}
-        >
+        {/*<Spicetify.ReactComponent.RightClickMenu */}
+        {/*  placement="bottom-end"*/}
+        {/*  menu={contextMenu}*/}
+        {/*>*/}
           <div 
             className={CSS_CLASSES.TRACK_CONTAINER}
             style={{ cursor: 'pointer' }}
@@ -59,7 +60,7 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
           >
             <img src={playlistData.image} alt={playlistData.name} />
           </div>
-        </Spicetify.ReactComponent.RightClickMenu>
+        {/*</Spicetify.ReactComponent.RightClickMenu>*/}
       </div>
     </Spicetify.ReactComponent.TooltipWrapper>
   );
