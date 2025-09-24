@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import './app.css'
 import { removeTrackFromPlaylist } from "./api";
 import { getTrackUriToPlaylistData, updatePlaylistData, updateLikedTracks } from "./playlist";
+import {getFiberFromDom, getParentProps} from "./utilties";
 
 // Global state variables to manage the DOM and application state.
 let oldMainElement = null; // Stores the previous main element to detect changes.
@@ -37,17 +38,16 @@ function playlistUriToPlaylistId(uri) {
  * @param {any} tracklistElement - The tracklist row's React component instance.
  * @returns {string | null} The track URI or null if not found.
  */
-function getTracklistTrackUri(tracklistElement) {
-    let values = Object.values(tracklistElement);
-    if (!values) return null;
-    // Traverses the React fiber node to find the track URI.
-    const searchFrom = values[0]?.pendingProps?.children[0]?.props?.children;
-    return (
-        searchFrom?.props?.uri ||
-        searchFrom?.props?.children?.props?.uri ||
-        searchFrom?.props?.children?.props?.children?.props?.uri ||
-        searchFrom[0]?.props?.uri
-    );
+function getTracklistTrackUri(tracklistElement: Element):string|null {
+    const tracklistParentElement=tracklistElement.parentElement;
+    if (!tracklistParentElement) return null;
+    const tracklistParentFiber = getFiberFromDom(tracklistParentElement);
+    if (!tracklistParentFiber) return null;
+    const tracklistParentProps = getParentProps(tracklistParentFiber,fiber => {
+        const props = fiber.memoizedProps || fiber.pendingProps;
+        return props && props.uri
+    });
+    return tracklistParentProps.uri
 }
 
 /**
