@@ -31,6 +31,7 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
       <Spicetify.ReactComponent.MenuItem
         leadingIcon={
           <Spicetify.ReactComponent.IconComponent
+            // @ts-ignore
             dangerouslySetInnerHTML={{ __html: Spicetify.SVGIcons.trash }}
             iconSize={16}
             style={{ color: "var(--text-subdued)" }}
