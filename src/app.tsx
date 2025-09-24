@@ -11,32 +11,34 @@ let oldMainElement = null; // Stores the previous main element to detect changes
 let mainElement: HTMLElement | null = null; // The main container element of the Spotify client.
 let mainElementObserver: MutationObserver; // Observes changes in the main element.
 let tracklists: HTMLElement[] = []; // Holds the current tracklist elements on the page.
-let oldTracklists = []; // Holds the previous tracklist elements to detect changes.
-let trackUriToPlaylistData: Record<string, {
-    isOwnPlaylist: any;
-    isLikedTracks: any;
-    uri: string;
-    name: string | undefined;
-    trackUid: any;
-    image: string | undefined;
-}> = {}; // Maps track URIs to their associated playlist data.
+let oldTracklists: HTMLElement[] = []; // Holds the previous tracklist elements to detect changes.
+let trackUriToPlaylistData: Record<string, PlaylistData[]> = {}; // Maps track URIs to their associated playlist data.
 let playlistUpdated = false; // Flag to indicate if the playlist data has been updated.
 let showAllPlaylists = false; // Flag to toggle showing all playlists or only user-owned ones.
 let highlightTrack: string | null = null; // The URI of the track to be highlighted on navigation.
-let highlightTrackPath: string | null = null; // The path to navigate to for highlighting a track.
+let highlightTrackPath: string | null | undefined = null; // The path to navigate to for highlighting a track.
 let maxExistingLabelCount = 0; // The maximum number of labels any track currently has.
 let maxLabelCount = 1; // The maximum number of labels to display per track, based on screen width.
 let rowHeight = '56px'; // The height of a track row, used for layout calculations.
 let mainView: Element | null; // The main view container for observing resize events.
 let updatePromise = Promise.resolve(); // A promise chain to serialize data updates.
 
+interface PlaylistData {
+    isOwnPlaylist: boolean;
+    isLikedTracks: boolean;
+    uri: string;
+    name: string;
+    trackUid: string;
+    image: string;
+}
+
 /**
  * Extracts the playlist ID from a Spotify playlist URI.
  * @param {string} uri - The Spotify playlist URI (e.g., "spotify:playlist:...")
  * @returns {string} The playlist ID.
  */
-function playlistUriToPlaylistId(uri: { match: (arg0: RegExp) => any[]; }) {
-    return uri.match(/spotify:playlist:(.*)/)[1];
+function playlistUriToPlaylistId(uri: string | null) {
+    return uri && uri.match(/spotify:playlist:(.*)/)?.[1];
 }
 
 /**
@@ -54,6 +56,9 @@ function getTracklistTrackUri(tracklistElement: Element): string | null {
         const props = fiber.memoizedProps || fiber.pendingProps;
         return props && props.uri
     });
+    if (!tracklistParentProps) {
+        return null;
+    }
     return tracklistParentProps.uri
 }
 
@@ -223,12 +228,14 @@ function updateTracklist() {
                                                                                                              style={{color: "var(--text-subdued)"}}
                                                                                                          />
                                                                                                      } onClick={
-                                                                                                     (e: Event) => {
+                                                                                                     (e: React.MouseEvent) => {
                                                                                                          e.stopPropagation();
                                                                                                          // API call to remove the track.
                                                                                                          removeTrackFromPlaylist(playlistData.uri, trackUri);
                                                                                                          // Optimistically update the UI.
-                                                                                                         trackUriToPlaylistData[trackUri] = trackUriToPlaylistData[trackUri].filter((otherPlaylistData) => otherPlaylistData.uri !== playlistData.uri);
+                                                                                                         if (trackUriToPlaylistData[trackUri]) {
+                                                                                                             trackUriToPlaylistData[trackUri] = trackUriToPlaylistData[trackUri].filter((otherPlaylistData) => otherPlaylistData.uri !== playlistData.uri);
+                                                                                                         }
                                                                                                          playlistUpdated = true;
                                                                                                          updateTracklist();
                                                                                                      }
@@ -238,7 +245,7 @@ function updateTracklist() {
                                                                                          }>
                                                     <div className="spicetify-playlist-labels-label-container" style={{
                                                         cursor: 'pointer',
-                                                    }} onClick={(e: Event) => {
+                                                    }} onClick={(e: React.MouseEvent) => {
                                                         // Handle click to navigate to the playlist.
                                                         e.stopPropagation();
                                                         const path = playlistData.isLikedTracks ? '/collection/tracks' : Spicetify.URI.fromString(playlistData.uri)?.toURLPath(true);
@@ -319,17 +326,17 @@ async function main() {
     // Listen for changes in the user's library (e.g., liking/unliking a track).
     await Spicetify.Platform.LibraryAPI.getEvents().addListener('update', () => {
         updatePromise = updatePromise.then(() => {
-            return updateLikedTracks()
+            updateLikedTracks()
         });
         getDataAndUpdateTracklist(updatePromise);
     });
 
     // Listen for playlist operations (e.g., adding/removing tracks).
     await Spicetify.Platform.PlaylistAPI.getEvents().addListener('operation_complete', (event: {
-        data: { uri: any; };
+        data: { uri: string; };
     }) => {
         updatePromise = updatePromise.then(() => {
-            return updatePlaylistData(event.data.uri)
+            updatePlaylistData(event.data.uri)
         });
         getDataAndUpdateTracklist(updatePromise);
     });

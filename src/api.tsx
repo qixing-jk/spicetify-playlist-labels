@@ -19,7 +19,7 @@ export async function getLikedTracksCount() {
  * @param {string} uri - The Spotify URI of the playlist.
  * @returns {Promise<any[]>} A promise that resolves with an array of playlist items.
  */
-export async function getPlaylistItems(uri) {
+export async function getPlaylistItems(uri: any) {
     const result = await Spicetify.Platform.PlaylistAPI.getContents(uri)
     return result.items;
 }
@@ -30,7 +30,7 @@ export async function getPlaylistItems(uri) {
  * @param {string} trackUri - The Spotify URI of the track to be removed.
  * @returns {Promise<void>}
  */
-export async function removeTrackFromPlaylist(playlistUri, trackUri) {
+export async function removeTrackFromPlaylist(playlistUri: any, trackUri: string) {
     await Spicetify.Platform.PlaylistAPI.remove(playlistUri, [{ uri: trackUri, uid: "" }]);
 }
 
