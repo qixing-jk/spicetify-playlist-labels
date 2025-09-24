@@ -1,20 +1,44 @@
+/**
+ * Fetches the contents of the user's rootlist, including playlists and folders.
+ * @returns {Promise<any>} A promise that resolves with the rootlist contents.
+ */
 export async function getContents() {
     return await Spicetify.Platform.RootlistAPI.getContents({ decorateImagesAndOwner: true });
 }
 
+/**
+ * Fetches the total number of liked tracks for the current user.
+ * @returns {Promise<number>} A promise that resolves with the count of liked tracks.
+ */
 export async function getLikedTracksCount() {
     return (await Spicetify.Platform.LibraryAPI.getTracks()).totalLength;
 }
 
+/**
+ * Fetches the items (tracks) within a specific playlist.
+ * @param {string} uri - The Spotify URI of the playlist.
+ * @returns {Promise<any[]>} A promise that resolves with an array of playlist items.
+ */
 export async function getPlaylistItems(uri) {
     const result = await Spicetify.Platform.PlaylistAPI.getContents(uri)
     return result.items;
 }
 
+/**
+ * Removes a track from a specific playlist.
+ * @param {string} playlistUri - The Spotify URI of the playlist.
+ * @param {string} trackUri - The Spotify URI of the track to be removed.
+ * @returns {Promise<void>}
+ */
 export async function removeTrackFromPlaylist(playlistUri, trackUri) {
     await Spicetify.Platform.PlaylistAPI.remove(playlistUri, [{ uri: trackUri, uid: "" }]);
 }
 
+/**
+ * Fetches all liked tracks for the current user.
+ * It retrieves the full list by using the maximum safe integer as the limit.
+ * @returns {Promise<any>} A promise that resolves with the liked tracks object.
+ */
 export async function getLikedTracks() {
     return await Spicetify.Platform.LibraryAPI.getTracks({ limit: Number.MAX_SAFE_INTEGER });
 }
