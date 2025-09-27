@@ -54,13 +54,27 @@ class PlaylistDataManager {
   /**
    * 添加播放列表到轨道数据映射
    */
-  private addPlaylists(
+  private async addPlaylists(
     trackUriToPlaylistData: Record<string, PlaylistData[]>,
     playlists: PlaylistExtra[],
     uriToPlaylistItems: Record<string, any[]>
-  ): void {
-    playlists.forEach((playlist) => {
+  ): Promise<void> {
+    for (const playlist of playlists) {
       const playlistItems = uriToPlaylistItems[playlist.uri] ?? [];
+      
+      let imageUrl = playlist.images?.[0]?.url;
+
+      if (!imageUrl) {
+        try {
+          const metadata = await Spicetify.Platform.PlaylistAPI.getMetadata(playlist.uri);
+          if (metadata && metadata.images && metadata.images.length) {
+            imageUrl = metadata.images[0].url;
+          }
+        } catch (error) {
+          console.error('Failed to get metadata for playlist:', playlist.name, error);
+        }
+      }
+
       playlistItems.forEach((item) => {
         const trackUri = item.uri;
         
@@ -78,13 +92,13 @@ class PlaylistDataManager {
             uri: playlist.uri,
             name: playlist.name,
             trackUid: item.uid,
-            image: playlist.images[0]?.url || '',
+            image: imageUrl || '',
             isOwnPlaylist: playlist.isOwnedBySelf,
             isLikedTracks: false
           });
         }
       });
-    });
+    }
   }
 
   /**
@@ -122,11 +136,11 @@ class PlaylistDataManager {
   /**
    * 构建轨道到播放列表的数据映射
    */
-  private buildTrackUriToPlaylistData(
+  private async buildTrackUriToPlaylistData(
     playlists: PlaylistExtra[],
     uriToPlaylistItems: Record<string, any[]>,
     likedTracks?: any[]
-  ): Record<string, PlaylistData[]> {
+  ): Promise<Record<string, PlaylistData[]>> {
     const trackUriToPlaylistData: Record<string, PlaylistData[]> = {};
     
     // 按日期排序播放列表
@@ -134,13 +148,13 @@ class PlaylistDataManager {
     const [ratedPlaylists, nonRatedPlaylists] = separateRatedPlaylists(sortedPlaylists);
 
     // 按优先级顺序添加：评级播放列表 > 喜欢的歌曲 > 普通播放列表
-    this.addPlaylists(trackUriToPlaylistData, ratedPlaylists, uriToPlaylistItems);
+    await this.addPlaylists(trackUriToPlaylistData, ratedPlaylists, uriToPlaylistItems);
     
     if (likedTracks) {
       this.addLikedTracks(trackUriToPlaylistData, likedTracks);
     }
     
-    this.addPlaylists(trackUriToPlaylistData, nonRatedPlaylists, uriToPlaylistItems);
+    await this.addPlaylists(trackUriToPlaylistData, nonRatedPlaylists, uriToPlaylistItems);
 
     return trackUriToPlaylistData;
   }
@@ -164,7 +178,7 @@ class PlaylistDataManager {
     await cacheService.cachePlaylistItems(db, { [uri]: updatedItems });
 
     const likedTracks = cachedUriToItems['likedTracks'];
-    return this.buildTrackUriToPlaylistData(playlists, cachedUriToItems, likedTracks);
+    return await this.buildTrackUriToPlaylistData(playlists, cachedUriToItems, likedTracks);
   }
 
   /**
@@ -186,7 +200,7 @@ class PlaylistDataManager {
     localStorage.setItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT, `${likedTracks.length}`);
 
     const sortedPlaylists = sortPlaylistsByDate(cachedPlaylists);
-    return this.buildTrackUriToPlaylistData(sortedPlaylists, cachedUriToItems, likedTracks);
+    return await this.buildTrackUriToPlaylistData(sortedPlaylists, cachedUriToItems, likedTracks);
   }
 
   /**
@@ -239,7 +253,7 @@ class PlaylistDataManager {
     await cacheService.cachePlaylistItems(db, uriToPlaylistItems);
     localStorage.setItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT, `${currentLikedCount}`);
 
-    return this.buildTrackUriToPlaylistData(playlists, uriToPlaylistItems, likedTracks);
+    return await this.buildTrackUriToPlaylistData(playlists, uriToPlaylistItems, likedTracks);
   }
 }
 

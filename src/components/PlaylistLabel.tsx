@@ -59,7 +59,9 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
             style={{ cursor: 'pointer' }}
             onClick={handleLabelClick}
           >
-            <img src={playlistData.image} alt={playlistData.name} />
+            {playlistData.image && (
+              <img src={playlistData.image} alt={playlistData.name} />
+            )}
           </div>
         {/*</Spicetify.ReactComponent.RightClickMenu>*/}
       </div>
