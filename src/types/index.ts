@@ -52,12 +52,3 @@ export interface DatabaseOperations {
   clearCachedPlaylistItems(db: IDBDatabase): Promise<void>;
 }
 
-// Utility function types
-export type FilterFunction = (parent: any) => boolean;
-
-// Event handler types
-export type ButtonClickHandler = (
-  buttonElement: Spicetify.Playbar.Button,
-) => void;
-export type MenuItemClickHandler = (e: React.MouseEvent) => void;
-export type LabelClickHandler = (e: React.MouseEvent) => void;
