@@ -6,7 +6,8 @@
     "build": "spicetify-creator",
     "build-local": "spicetify-creator --out=dist --minify",
     "watch": "spicetify-creator --watch",
-    "build:ci": "spicetify-creator --out=dist --minify"
+    "build:ci": "spicetify-creator --out=dist --minify",
+    "format": "prettier --write ."
   },
   "license": "MIT",
   "devDependencies": {
