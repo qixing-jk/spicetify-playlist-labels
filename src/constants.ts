@@ -7,7 +7,7 @@ export const CONFIG = {
   
   // 缓存配置
   DB_NAME: 'spicetify-playlist-labels',
-  DB_VERSION: 1,
+  DB_VERSION: 2,
   
   // CSS 变量
   CSS_VARS: {
