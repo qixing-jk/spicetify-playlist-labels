@@ -223,14 +223,21 @@ class PlaylistDataManager {
 
     // 获取更新的播放列表项目
     const updatedPlaylistPromises = updatedPlaylists.map((playlist) => 
-      getPlaylistItems(playlist.uri)
+      getPlaylistItems(playlist.uri).catch(e => {
+        console.error(`Failed to fetch items for playlist ${playlist.name} (${playlist.uri}):`, e);
+        return null; // Return null on error to preserve old cache
+      })
     );
     const updatedPlaylistItems = await Promise.all(updatedPlaylistPromises);
 
     // 合并更新和缓存的数据
     const uriToPlaylistItems: Record<string, any[]> = { ...cachedUriToItems };
     updatedPlaylists.forEach((playlist, index) => {
-      uriToPlaylistItems[playlist.uri] = updatedPlaylistItems[index];
+      const items = updatedPlaylistItems[index];
+      // Only update if fetch was successful
+      if (items !== null) {
+        uriToPlaylistItems[playlist.uri] = items;
+      }
     });
 
     // 检查喜欢的歌曲是否需要更新
