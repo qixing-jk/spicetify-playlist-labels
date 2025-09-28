@@ -39,7 +39,7 @@ jobs:
 
       - name: Build dist
         if: ${{ steps.release.outputs.release_created }}
-        run: npm run ci:build
+        run: npm run build:ci
 
       - name: Commit dist to release PR
         if: ${{ steps.release.outputs.release_created }}
