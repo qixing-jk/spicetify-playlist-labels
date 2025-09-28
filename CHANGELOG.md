@@ -1,4 +1,22 @@
-# [1.0.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v0.1.1...v1.0.0) (2025-09-28)
+# Changelog
+
+## [1.1.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.0.0...v1.1.0) (2025-09-28)
+
+
+### Features
+
+* add prettier formatting script to package.json ([48a7dfe](https://github.com/qixing-jk/spicetify-playlist-labels/commit/48a7dfea96dcd816025e29adfffa11191f6dd109))
+
+
+### Bug Fixes
+
+* **playlist:** handle errors when fetching playlist items ([#8](https://github.com/qixing-jk/spicetify-playlist-labels/issues/8)) ([b4b0561](https://github.com/qixing-jk/spicetify-playlist-labels/commit/b4b056167f1d7c321cbd5fbdc53135d7612c1d3c))
+
+## [1.0.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v0.1.1...v1.0.0) (2025-09-28)
+
+### ⚠ BREAKING CHANGES
+
+- **deps:** The Spicetify.Panel namespace and its related components and hooks have been removed.
 
 ### Bug Fixes
 
