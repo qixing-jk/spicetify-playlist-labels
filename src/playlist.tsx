@@ -1,4 +1,4 @@
-import { getContents, getLikedTracks, getLikedTracksCount, getPlaylistItems } from "./api";
+import { getContents, getLikedTracks, getLikedTracksCount, getPlaylistItems, getPlaylistMetadata } from "./api";
 import { CONFIG } from './constants';
 import { cacheService } from './services/CacheService';
 import { PlaylistExtra, PlaylistData } from './types';
@@ -66,8 +66,8 @@ class PlaylistDataManager {
 
       if (!imageUrl) {
         try {
-          const metadata = await Spicetify.Platform.PlaylistAPI.getMetadata(playlist.uri);
-          if (metadata && metadata.images && metadata.images.length) {
+          const metadata = await getPlaylistMetadata(playlist.uri);
+          if (metadata?.images?.length) {
             imageUrl = metadata.images[0].url;
           }
         } catch (error) {
