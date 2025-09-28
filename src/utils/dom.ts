@@ -1,11 +1,13 @@
-import { CONFIG } from '../constants';
-import { getFiberFromDom, getParentProps } from '../utilties';
-import { PlaylistData } from '../types';
+import { CONFIG } from "../constants";
+import { getFiberFromDom, getParentProps } from "../utilties";
+import { PlaylistData } from "../types";
 
 /**
  * 从Spotify播放列表URI提取播放列表ID
  */
-export function playlistUriToPlaylistId(uri: string | null): string | undefined {
+export function playlistUriToPlaylistId(
+  uri: string | null,
+): string | undefined {
   return uri?.match(/spotify:playlist:(.*)/)?.[1];
 }
 
@@ -15,15 +17,17 @@ export function playlistUriToPlaylistId(uri: string | null): string | undefined 
 export function getTracklistTrackUri(tracklistElement: Element): string | null {
   const tracklistParentElement = tracklistElement.parentElement;
   if (!tracklistParentElement) return null;
-  
-  const tracklistParentFiber = getFiberFromDom(tracklistParentElement as HTMLElement);
+
+  const tracklistParentFiber = getFiberFromDom(
+    tracklistParentElement as HTMLElement,
+  );
   if (!tracklistParentFiber) return null;
-  
-  const tracklistParentProps = getParentProps(tracklistParentFiber, fiber => {
+
+  const tracklistParentProps = getParentProps(tracklistParentFiber, (fiber) => {
     const props = fiber.memoizedProps || fiber.pendingProps;
     return props && props.uri;
   });
-  
+
   if (!tracklistParentProps) {
     return null;
   }
@@ -41,13 +45,17 @@ export function updateCSSVariable(variable: string, value: string): void {
  * 获取所有轨道列表元素
  */
 export function getTracklistElements(): HTMLElement[] {
-  return Array.from(document.querySelectorAll(CONFIG.SELECTORS.TRACKLIST)) as HTMLElement[];
+  return Array.from(
+    document.querySelectorAll(CONFIG.SELECTORS.TRACKLIST),
+  ) as HTMLElement[];
 }
 
 /**
  * 获取轨道行元素
  */
-export function getTrackRowElements(tracklist: Element): HTMLCollectionOf<Element> {
+export function getTrackRowElements(
+  tracklist: Element,
+): HTMLCollectionOf<Element> {
   return tracklist.getElementsByClassName("main-trackList-trackListRow");
 }
 
@@ -77,7 +85,10 @@ export function createLabelContainer(): HTMLDivElement {
 /**
  * 插入标签容器到轨道行
  */
-export function insertLabelContainer(track: Element, labelContainer: HTMLElement): void {
+export function insertLabelContainer(
+  track: Element,
+  labelContainer: HTMLElement,
+): void {
   const lastColumn = track.querySelector(CONFIG.SELECTORS.LAST_COLUMN);
   if (lastColumn) {
     lastColumn.insertBefore(labelContainer, lastColumn.firstChild);
@@ -90,8 +101,12 @@ export function insertLabelContainer(track: Element, labelContainer: HTMLElement
 export function isCurrentPlaylistPage(playlistData: PlaylistData): boolean {
   if (!playlistData.isLikedTracks) {
     const playlistId = playlistUriToPlaylistId(playlistData.uri);
-    return Spicetify.Platform.History.location.pathname === `/playlist/${playlistId}`;
+    return (
+      Spicetify.Platform.History.location.pathname === `/playlist/${playlistId}`
+    );
   } else {
-    return Spicetify.Platform.History.location.pathname === '/collection/tracks';
+    return (
+      Spicetify.Platform.History.location.pathname === "/collection/tracks"
+    );
   }
 }

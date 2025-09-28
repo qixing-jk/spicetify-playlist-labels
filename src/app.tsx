@@ -1,13 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './app.css';
-import { CONFIG, CSS_CLASSES } from './constants';
-import { PlaylistData } from './types';
-import { appState } from './state/AppState';
-import { layoutManager } from './services/LayoutManager';
-import { PlaylistLabelsContainer } from './components/PlaylistLabelsContainer';
-import { removeTrackFromPlaylist } from './api';
-import { getTrackUriToPlaylistData, updateLikedTracks, updatePlaylistData } from './playlist';
+import React from "react";
+import ReactDOM from "react-dom";
+import "./app.css";
+import { CONFIG, CSS_CLASSES } from "./constants";
+import { PlaylistData } from "./types";
+import { appState } from "./state/AppState";
+import { layoutManager } from "./services/LayoutManager";
+import { PlaylistLabelsContainer } from "./components/PlaylistLabelsContainer";
+import { removeTrackFromPlaylist } from "./api";
+import {
+  getTrackUriToPlaylistData,
+  updateLikedTracks,
+  updatePlaylistData,
+} from "./playlist";
 import {
   getMainElement,
   getMainViewElement,
@@ -16,9 +20,9 @@ import {
   getTracklistTrackUri,
   createLabelContainer,
   insertLabelContainer,
-  playlistUriToPlaylistId
-} from './utils/dom';
-import { filterPlaylistData } from './utils/filters';
+  playlistUriToPlaylistId,
+} from "./utils/dom";
+import { filterPlaylistData } from "./utils/filters";
 
 // 全局观察器和更新Promise
 let mainElementObserver: MutationObserver;
@@ -33,7 +37,7 @@ class TracklistRenderer {
    */
   updateTracklist(): void {
     const state = appState.getState();
-    
+
     // 检测轨道列表变化
     const newTracklists = getTracklistElements();
     appState.updateTracklists(newTracklists);
@@ -55,7 +59,7 @@ class TracklistRenderer {
    */
   private processTracklist(tracklist: Element): void {
     const tracks = getTrackRowElements(tracklist);
-    
+
     for (const track of tracks) {
       this.processTrackRow(track as HTMLElement);
     }
@@ -66,7 +70,7 @@ class TracklistRenderer {
    */
   private processTrackRow(track: HTMLElement): void {
     const state = appState.getState();
-    
+
     // 更新行高
     this.updateRowHeightIfNeeded(track);
 
@@ -78,7 +82,7 @@ class TracklistRenderer {
 
     // 获取过滤后的播放列表数据
     const filteredPlaylistData = this.getFilteredPlaylistData(trackUri);
-    
+
     // 更新CSS变量
     layoutManager.updateMaxExistingLabelCount(filteredPlaylistData.length);
 
@@ -91,14 +95,17 @@ class TracklistRenderer {
    */
   private updateRowHeightIfNeeded(track: HTMLElement): void {
     const trackStyle = getComputedStyle(track);
-    
+
     // Stats应用兼容性处理
     const statsApp = document.querySelector(CONFIG.SELECTORS.STATS_APP);
     if (statsApp) {
-      (statsApp as HTMLElement).style.setProperty('--row-height', trackStyle.height);
+      (statsApp as HTMLElement).style.setProperty(
+        "--row-height",
+        trackStyle.height,
+      );
     }
-    
-    const trackRowHeight = trackStyle.getPropertyValue('--row-height');
+
+    const trackRowHeight = trackStyle.getPropertyValue("--row-height");
     if (trackRowHeight && trackRowHeight !== appState.getState().rowHeight) {
       layoutManager.updateRowHeight(trackRowHeight);
     }
@@ -109,8 +116,10 @@ class TracklistRenderer {
    */
   private handleTrackHighlight(track: HTMLElement, trackUri: string): void {
     const state = appState.getState();
-    if (state.highlightTrack === trackUri && 
-        Spicetify.Platform.History.location.pathname === state.highlightTrackPath) {
+    if (
+      state.highlightTrack === trackUri &&
+      Spicetify.Platform.History.location.pathname === state.highlightTrackPath
+    ) {
       track.click();
       appState.setHighlightTrack(null);
     }
@@ -129,12 +138,14 @@ class TracklistRenderer {
    * 处理标签容器
    */
   private handleLabelContainer(
-    track: HTMLElement, 
-    trackUri: string, 
-    filteredPlaylistData: PlaylistData[]
+    track: HTMLElement,
+    trackUri: string,
+    filteredPlaylistData: PlaylistData[],
   ): void {
     const state = appState.getState();
-    let labelContainer = track.querySelector(`.${CSS_CLASSES.LABEL_CONTAINER}`) as HTMLElement;
+    let labelContainer = track.querySelector(
+      `.${CSS_CLASSES.LABEL_CONTAINER}`,
+    ) as HTMLElement;
 
     // 如果需要完全更新，移除现有容器
     if (state.playlistUpdated && labelContainer) {
@@ -154,7 +165,7 @@ class TracklistRenderer {
   private createAndRenderLabels(
     track: HTMLElement,
     trackUri: string,
-    filteredPlaylistData: PlaylistData[]
+    filteredPlaylistData: PlaylistData[],
   ): void {
     const state = appState.getState();
     const labelContainer = createLabelContainer();
@@ -167,7 +178,7 @@ class TracklistRenderer {
         onRemoveTrack={this.handleRemoveTrack}
         onNavigateToPlaylist={this.handleNavigateToPlaylist}
       />,
-      labelContainer
+      labelContainer,
     );
 
     insertLabelContainer(track, labelContainer);
@@ -178,18 +189,18 @@ class TracklistRenderer {
    */
   private handleRemoveTrack = (playlistUri: string, trackUri: string): void => {
     removeTrackFromPlaylist(playlistUri, trackUri);
-    
+
     // 乐观更新UI
     const state = appState.getState();
     if (state.trackUriToPlaylistData[trackUri]) {
       const updatedData = state.trackUriToPlaylistData[trackUri].filter(
-        (data) => data.uri !== playlistUri
+        (data) => data.uri !== playlistUri,
       );
       const newTrackData = { ...state.trackUriToPlaylistData };
       newTrackData[trackUri] = updatedData;
       appState.setTrackUriToPlaylistData(newTrackData);
     }
-    
+
     appState.markPlaylistUpdated();
     this.updateTracklist();
   };
@@ -197,17 +208,20 @@ class TracklistRenderer {
   /**
    * 处理导航到播放列表
    */
-  private handleNavigateToPlaylist = (playlistData: PlaylistData, trackUri: string): void => {
-    const path = playlistData.isLikedTracks 
-      ? CONFIG.PATHS.LIKED_TRACKS 
+  private handleNavigateToPlaylist = (
+    playlistData: PlaylistData,
+    trackUri: string,
+  ): void => {
+    const path = playlistData.isLikedTracks
+      ? CONFIG.PATHS.LIKED_TRACKS
       : Spicetify.URI.fromString(playlistData.uri!)?.toURLPath(true);
-    
+
     appState.setHighlightTrack(trackUri, path);
-    
+
     if (path) {
       Spicetify.Platform.History.push({
         pathname: path,
-        search: `?uid=${playlistData.trackUid}`
+        search: `?uid=${playlistData.trackUid}`,
       });
     }
   };
@@ -222,15 +236,15 @@ const tracklistRenderer = new TracklistRenderer();
 async function observerCallback(): Promise<void> {
   const newMainElement = getMainElement();
   appState.updateMainElement(newMainElement);
-  
+
   if (appState.hasMainElementChanged()) {
     const state = appState.getState();
     if (state.oldMainElement) {
       mainElementObserver.disconnect();
     }
-    
+
     tracklistRenderer.updateTracklist();
-    
+
     // 开始观察新的主元素
     if (state.mainElement) {
       mainElementObserver.observe(state.mainElement, {
@@ -247,16 +261,16 @@ async function observerCallback(): Promise<void> {
 async function main(): Promise<void> {
   // 等待Spicetify加载
   while (!Spicetify?.showNotification) {
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   // 初始化状态
   const mainView = getMainViewElement();
   appState.setMainView(mainView);
-  
+
   // 加载用户设置
   const showAllPlaylists = JSON.parse(
-    localStorage.getItem(CONFIG.STORAGE_KEYS.SHOW_ALL) || 'false'
+    localStorage.getItem(CONFIG.STORAGE_KEYS.SHOW_ALL) || "false",
   );
   appState.setShowAllPlaylists(showAllPlaylists);
 
@@ -271,7 +285,7 @@ async function main(): Promise<void> {
 
   // 设置事件监听器
   await setupEventListeners(updateDataAndTracklist);
-  
+
   // 创建播放栏按钮
   createPlaybarButton();
 
@@ -286,18 +300,25 @@ async function main(): Promise<void> {
 /**
  * 设置事件监听器
  */
-async function setupEventListeners(updateCallback: (promise: Promise<any>) => void): Promise<void> {
+async function setupEventListeners(
+  updateCallback: (promise: Promise<any>) => void,
+): Promise<void> {
   // 库更新监听器
-  await Spicetify.Platform.LibraryAPI.getEvents().addListener('update', () => {
+  await Spicetify.Platform.LibraryAPI.getEvents().addListener("update", () => {
     updatePromise = updatePromise.then(() => updateLikedTracks());
     updateCallback(updatePromise);
   });
 
   // 播放列表操作监听器
-  await Spicetify.Platform.PlaylistAPI.getEvents().addListener('operation_complete', (event) => {
-    updatePromise = updatePromise.then(() => updatePlaylistData(event.data.uri));
-    updateCallback(updatePromise);
-  });
+  await Spicetify.Platform.PlaylistAPI.getEvents().addListener(
+    "operation_complete",
+    (event) => {
+      updatePromise = updatePromise.then(() =>
+        updatePlaylistData(event.data.uri),
+      );
+      updateCallback(updatePromise);
+    },
+  );
 }
 
 /**
@@ -307,18 +328,21 @@ function createPlaybarButton(): void {
   const handleButtonClick = (buttonElement: Spicetify.Playbar.Button) => {
     const newShowAllState = appState.toggleShowAllPlaylists();
     buttonElement.active = newShowAllState;
-    localStorage.setItem(CONFIG.STORAGE_KEYS.SHOW_ALL, JSON.stringify(newShowAllState));
+    localStorage.setItem(
+      CONFIG.STORAGE_KEYS.SHOW_ALL,
+      JSON.stringify(newShowAllState),
+    );
     appState.markPlaylistUpdated();
     tracklistRenderer.updateTracklist();
   };
 
   const iconHTML = `<svg data-encore-id="icon" role="img" viewBox="0 0 16 16" class="Svg-img-icon-small">${Spicetify.SVGIcons["spotify"]}</svg>`;
   new Spicetify.Playbar.Button(
-    "Show All Saved Playlists", 
-    iconHTML, 
-    handleButtonClick, 
-    false, 
-    appState.getState().showAllPlaylists
+    "Show All Saved Playlists",
+    iconHTML,
+    handleButtonClick,
+    false,
+    appState.getState().showAllPlaylists,
   );
 }
 

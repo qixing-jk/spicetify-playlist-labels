@@ -1,6 +1,6 @@
-import { CONFIG } from '../constants';
-import { appState } from '../state/AppState';
-import { updateCSSVariable } from '../utils/dom';
+import { CONFIG } from "../constants";
+import { appState } from "../state/AppState";
+import { updateCSSVariable } from "../utils/dom";
 
 /**
  * 布局管理器，负责计算和管理播放列表标签的显示
@@ -22,7 +22,7 @@ export class LayoutManager {
       contentRect.width,
       space,
       minViewSize,
-      maxPossibleLabelCount
+      maxPossibleLabelCount,
     );
 
     if (newMaxLabelCount !== state.maxLabelCount) {
@@ -39,7 +39,7 @@ export class LayoutManager {
     width: number,
     space: number,
     minViewSize: number,
-    maxPossibleLabelCount: number
+    maxPossibleLabelCount: number,
   ): number {
     // 基础情况：最小宽度只显示1个标签
     if (width <= minViewSize) {

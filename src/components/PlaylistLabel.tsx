@@ -1,6 +1,6 @@
-import React from 'react';
-import { PlaylistData } from '../types';
-import { CSS_CLASSES } from '../constants';
+import React from "react";
+import { PlaylistData } from "../types";
+import { CSS_CLASSES } from "../constants";
 
 interface PlaylistLabelProps {
   playlistData: PlaylistData;
@@ -13,7 +13,7 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   playlistData,
   trackUri,
   onRemoveTrack,
-  onNavigateToPlaylist
+  onNavigateToPlaylist,
 }) => {
   const handleRemoveClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,15 +54,15 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
         {/*  placement="bottom-end"*/}
         {/*  menu={contextMenu}*/}
         {/*>*/}
-          <div 
-            className={CSS_CLASSES.TRACK_CONTAINER}
-            style={{ cursor: 'pointer' }}
-            onClick={handleLabelClick}
-          >
-            {playlistData.image && (
-              <img src={playlistData.image} alt={playlistData.name} />
-            )}
-          </div>
+        <div
+          className={CSS_CLASSES.TRACK_CONTAINER}
+          style={{ cursor: "pointer" }}
+          onClick={handleLabelClick}
+        >
+          {playlistData.image && (
+            <img src={playlistData.image} alt={playlistData.name} />
+          )}
+        </div>
         {/*</Spicetify.ReactComponent.RightClickMenu>*/}
       </div>
     </Spicetify.ReactComponent.TooltipWrapper>

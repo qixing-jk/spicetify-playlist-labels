@@ -7,9 +7,11 @@
 ![截图](screenshot.png)
 
 ## 安装
+
 安装 [Spicetify](https://spicetify.app) 并从市场安装“Playlist Labels”。
 
 ## 感谢
+
 感谢 [Scott Duffey](https://github.com/duffey) 制作了这款出色的扩展，为希望了解曲目所在播放列表的用户提供了便利！
 
 **我目前仅在处理兼容性更新，暂无新功能！**
@@ -38,6 +40,6 @@
 <img src="images/5-stars.jpg" width="100px">
 </p>
 
-
 ## 使用 Spicetify Creator 制作
+
 - https://github.com/spicetify/spicetify-creator

@@ -1,5 +1,5 @@
-import { CONFIG } from '../constants';
-import { CachedPlaylistItem, DatabaseOperations } from '../types';
+import { CONFIG } from "../constants";
+import { CachedPlaylistItem, DatabaseOperations } from "../types";
 
 /**
  * 缓存服务类，管理IndexedDB操作
@@ -19,7 +19,7 @@ export class CacheService implements DatabaseOperations {
       const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
 
       request.onerror = () => {
-        reject(new Error('Failed to open IndexedDB'));
+        reject(new Error("Failed to open IndexedDB"));
       };
 
       request.onupgradeneeded = (event) => {
@@ -47,14 +47,18 @@ export class CacheService implements DatabaseOperations {
    * 获取缓存的播放列表
    */
   async getCachedPlaylists(db: IDBDatabase): Promise<any[]> {
-    return this.performTransaction(db, "playlists", "readonly", (store) => store.getAll());
+    return this.performTransaction(db, "playlists", "readonly", (store) =>
+      store.getAll(),
+    );
   }
 
   /**
    * 获取缓存的播放列表项
    */
   async getCachedPlaylistItems(db: IDBDatabase): Promise<CachedPlaylistItem[]> {
-    return this.performTransaction(db, "playlistItems", "readonly", (store) => store.getAll());
+    return this.performTransaction(db, "playlistItems", "readonly", (store) =>
+      store.getAll(),
+    );
   }
 
   /**
@@ -62,43 +66,65 @@ export class CacheService implements DatabaseOperations {
    */
   async cachePlaylists(db: IDBDatabase, playlists: any[]): Promise<void> {
     return this.performTransaction(db, "playlists", "readwrite", (store) => {
-      playlists.forEach(playlist => store.put(playlist));
+      playlists.forEach((playlist) => store.put(playlist));
     });
   }
 
   /**
    * 缓存播放列表项
    */
-  async cachePlaylistItems(db: IDBDatabase, uriToPlaylistItems: any): Promise<void> {
-    return this.performTransaction(db, "playlistItems", "readwrite", (store) => {
-      Object.entries(uriToPlaylistItems).forEach(([uri, items]) => {
-        store.put({ uri, items });
-      });
-    });
+  async cachePlaylistItems(
+    db: IDBDatabase,
+    uriToPlaylistItems: any,
+  ): Promise<void> {
+    return this.performTransaction(
+      db,
+      "playlistItems",
+      "readwrite",
+      (store) => {
+        Object.entries(uriToPlaylistItems).forEach(([uri, items]) => {
+          store.put({ uri, items });
+        });
+      },
+    );
   }
 
   /**
    * 清除缓存的播放列表
    */
   async clearCachedPlaylists(db: IDBDatabase): Promise<void> {
-    return this.performTransaction(db, "playlists", "readwrite", (store) => store.clear());
+    return this.performTransaction(db, "playlists", "readwrite", (store) =>
+      store.clear(),
+    );
   }
 
   /**
    * 清除缓存的播放列表项
    */
   async clearCachedPlaylistItems(db: IDBDatabase): Promise<void> {
-    return this.performTransaction(db, "playlistItems", "readwrite", (store) => store.clear());
+    return this.performTransaction(db, "playlistItems", "readwrite", (store) =>
+      store.clear(),
+    );
   }
 
   async getCachedPlaylistMetadata(db: IDBDatabase, uri: string): Promise<any> {
-    return this.performTransaction(db, "playlistMetadata", "readonly", (store) => store.get(uri));
+    return this.performTransaction(
+      db,
+      "playlistMetadata",
+      "readonly",
+      (store) => store.get(uri),
+    );
   }
 
   async cachePlaylistMetadata(db: IDBDatabase, metadata: any): Promise<void> {
-    return this.performTransaction(db, "playlistMetadata", "readwrite", (store) => {
-      store.put(metadata);
-    });
+    return this.performTransaction(
+      db,
+      "playlistMetadata",
+      "readwrite",
+      (store) => {
+        store.put(metadata);
+      },
+    );
   }
 
   /**
@@ -108,21 +134,23 @@ export class CacheService implements DatabaseOperations {
     db: IDBDatabase,
     storeName: string,
     mode: IDBTransactionMode,
-    operation: (store: IDBObjectStore) => IDBRequest<T> | void
+    operation: (store: IDBObjectStore) => IDBRequest<T> | void,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(storeName, mode);
       const store = transaction.objectStore(storeName);
-      
+
       const request = operation(store);
-      
+
       if (request) {
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(new Error(`Transaction failed: ${request.error}`));
+        request.onerror = () =>
+          reject(new Error(`Transaction failed: ${request.error}`));
       } else {
         // 对于没有返回请求的操作（如批量插入）
         transaction.oncomplete = () => resolve(undefined as any);
-        transaction.onerror = () => reject(new Error(`Transaction failed: ${transaction.error}`));
+        transaction.onerror = () =>
+          reject(new Error(`Transaction failed: ${transaction.error}`));
       }
     });
   }

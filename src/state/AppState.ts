@@ -1,5 +1,5 @@
-import { AppState, PlaylistData } from '../types';
-import { CONFIG } from '../constants';
+import { AppState, PlaylistData } from "../types";
+import { CONFIG } from "../constants";
 
 // 应用状态管理类
 class AppStateManager {
@@ -16,7 +16,7 @@ class AppStateManager {
     maxExistingLabelCount: 0,
     maxLabelCount: 1,
     rowHeight: CONFIG.DEFAULT_ROW_HEIGHT,
-    mainView: null
+    mainView: null,
   };
 
   // 获取完整状态
@@ -97,13 +97,20 @@ class AppStateManager {
 
   // 检查轨道列表是否改变
   hasTracklistsChanged(): boolean {
-    return this.state.oldTracklists.length !== this.state.tracklists.length ||
-           !this.state.oldTracklists.every((value, index) => value === this.state.tracklists[index]);
+    return (
+      this.state.oldTracklists.length !== this.state.tracklists.length ||
+      !this.state.oldTracklists.every(
+        (value, index) => value === this.state.tracklists[index],
+      )
+    );
   }
 
   // 检查主元素是否改变
   hasMainElementChanged(): boolean {
-    return !!this.state.mainElement && !this.state.mainElement.isEqualNode(this.state.oldMainElement);
+    return (
+      !!this.state.mainElement &&
+      !this.state.mainElement.isEqualNode(this.state.oldMainElement)
+    );
   }
 }
 

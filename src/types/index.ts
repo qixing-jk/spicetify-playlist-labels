@@ -56,6 +56,8 @@ export interface DatabaseOperations {
 export type FilterFunction = (parent: any) => boolean;
 
 // 事件处理器类型
-export type ButtonClickHandler = (buttonElement: Spicetify.Playbar.Button) => void;
+export type ButtonClickHandler = (
+  buttonElement: Spicetify.Playbar.Button,
+) => void;
 export type MenuItemClickHandler = (e: React.MouseEvent) => void;
 export type LabelClickHandler = (e: React.MouseEvent) => void;

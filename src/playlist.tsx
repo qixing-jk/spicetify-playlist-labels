@@ -1,13 +1,19 @@
-import { getContents, getLikedTracks, getLikedTracksCount, getPlaylistItems, getPlaylistMetadata } from "./api";
-import { CONFIG } from './constants';
-import { cacheService } from './services/CacheService';
-import { PlaylistExtra, PlaylistData } from './types';
-import { 
-  sortPlaylistsByDate, 
-  separateRatedPlaylists, 
+import {
+  getContents,
+  getLikedTracks,
+  getLikedTracksCount,
+  getPlaylistItems,
+  getPlaylistMetadata,
+} from "./api";
+import { CONFIG } from "./constants";
+import { cacheService } from "./services/CacheService";
+import { PlaylistExtra, PlaylistData } from "./types";
+import {
+  sortPlaylistsByDate,
+  separateRatedPlaylists,
   hasPlaylistUpdated,
-  buildUriToPlaylistItems 
-} from './utils/filters';
+  buildUriToPlaylistItems,
+} from "./utils/filters";
 
 /**
  * 播放列表数据管理类
@@ -21,15 +27,17 @@ class PlaylistDataManager {
     const ratedPlaylists: any[] = [];
 
     const traverse = (item: any, isRated: boolean): void => {
-      if (item.type === 'playlist') {
+      if (item.type === "playlist") {
         if (isRated) {
           ratedPlaylists.push(item);
         } else {
           playlists.push(item);
         }
-      } else if (item.type === 'folder' && item.items) {
+      } else if (item.type === "folder" && item.items) {
         // 递归遍历文件夹，标记"Rated"文件夹内的播放列表
-        item.items.forEach((child: any) => traverse(child, item.name === 'Rated'));
+        item.items.forEach((child: any) =>
+          traverse(child, item.name === "Rated"),
+        );
       }
     };
 
@@ -47,7 +55,9 @@ class PlaylistDataManager {
     const allPlaylists = [...playlists, ...ratedPlaylists];
     return allPlaylists.map((playlist) => ({
       ...playlist,
-      isRatedPlaylist: ratedPlaylists.some((rated) => rated.uri === playlist.uri)
+      isRatedPlaylist: ratedPlaylists.some(
+        (rated) => rated.uri === playlist.uri,
+      ),
     }));
   }
 
@@ -57,11 +67,11 @@ class PlaylistDataManager {
   private async addPlaylists(
     trackUriToPlaylistData: Record<string, PlaylistData[]>,
     playlists: PlaylistExtra[],
-    uriToPlaylistItems: Record<string, any[]>
+    uriToPlaylistItems: Record<string, any[]>,
   ): Promise<void> {
     for (const playlist of playlists) {
       const playlistItems = uriToPlaylistItems[playlist.uri] ?? [];
-      
+
       let imageUrl = playlist.images?.[0]?.url;
 
       if (!imageUrl) {
@@ -71,30 +81,34 @@ class PlaylistDataManager {
             imageUrl = metadata.images[0].url;
           }
         } catch (error) {
-          console.error('Failed to get metadata for playlist:', playlist.name, error);
+          console.error(
+            "Failed to get metadata for playlist:",
+            playlist.name,
+            error,
+          );
         }
       }
 
       playlistItems.forEach((item) => {
         const trackUri = item.uri;
-        
+
         if (!trackUriToPlaylistData[trackUri]) {
           trackUriToPlaylistData[trackUri] = [];
         }
-        
+
         // 避免重复添加
         const exists = trackUriToPlaylistData[trackUri].some(
-          (data) => data.uri === playlist.uri
+          (data) => data.uri === playlist.uri,
         );
-        
+
         if (!exists) {
           trackUriToPlaylistData[trackUri].push({
             uri: playlist.uri,
             name: playlist.name,
             trackUid: item.uid,
-            image: imageUrl || '',
+            image: imageUrl || "",
             isOwnPlaylist: playlist.isOwnedBySelf,
-            isLikedTracks: false
+            isLikedTracks: false,
           });
         }
       });
@@ -106,28 +120,28 @@ class PlaylistDataManager {
    */
   private addLikedTracks(
     trackUriToPlaylistData: Record<string, PlaylistData[]>,
-    likedTracks: any[]
+    likedTracks: any[],
   ): void {
     likedTracks.forEach((item) => {
       const trackUri = item.uri;
-      
+
       if (!trackUriToPlaylistData[trackUri]) {
         trackUriToPlaylistData[trackUri] = [];
       }
-      
+
       // 检查是否已经存在喜欢的歌曲标签
       const hasLikedTrack = trackUriToPlaylistData[trackUri].some(
-        (data) => data.isLikedTracks
+        (data) => data.isLikedTracks,
       );
-      
+
       if (!hasLikedTrack) {
         trackUriToPlaylistData[trackUri].push({
           uri: null,
-          name: 'Liked Songs',
+          name: "Liked Songs",
           trackUid: item.uid,
           image: CONFIG.LIKED_SONGS_IMAGE,
           isOwnPlaylist: true,
-          isLikedTracks: true
+          isLikedTracks: true,
         });
       }
     });
@@ -139,22 +153,31 @@ class PlaylistDataManager {
   private async buildTrackUriToPlaylistData(
     playlists: PlaylistExtra[],
     uriToPlaylistItems: Record<string, any[]>,
-    likedTracks?: any[]
+    likedTracks?: any[],
   ): Promise<Record<string, PlaylistData[]>> {
     const trackUriToPlaylistData: Record<string, PlaylistData[]> = {};
-    
+
     // 按日期排序播放列表
     const sortedPlaylists = sortPlaylistsByDate(playlists);
-    const [ratedPlaylists, nonRatedPlaylists] = separateRatedPlaylists(sortedPlaylists);
+    const [ratedPlaylists, nonRatedPlaylists] =
+      separateRatedPlaylists(sortedPlaylists);
 
     // 按优先级顺序添加：评级播放列表 > 喜欢的歌曲 > 普通播放列表
-    await this.addPlaylists(trackUriToPlaylistData, ratedPlaylists, uriToPlaylistItems);
-    
+    await this.addPlaylists(
+      trackUriToPlaylistData,
+      ratedPlaylists,
+      uriToPlaylistItems,
+    );
+
     if (likedTracks) {
       this.addLikedTracks(trackUriToPlaylistData, likedTracks);
     }
-    
-    await this.addPlaylists(trackUriToPlaylistData, nonRatedPlaylists, uriToPlaylistItems);
+
+    await this.addPlaylists(
+      trackUriToPlaylistData,
+      nonRatedPlaylists,
+      uriToPlaylistItems,
+    );
 
     return trackUriToPlaylistData;
   }
@@ -162,13 +185,15 @@ class PlaylistDataManager {
   /**
    * 更新特定播放列表的数据
    */
-  async updatePlaylistData(uri: string): Promise<Record<string, PlaylistData[]>> {
+  async updatePlaylistData(
+    uri: string,
+  ): Promise<Record<string, PlaylistData[]>> {
     const db = await cacheService.getDb();
     const playlists = await this.getPlaylistsExtra();
     const cachedPlaylistItems = await cacheService.getCachedPlaylistItems(db);
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
-    
+
     // 获取更新的播放列表项目
     const updatedItems = await getPlaylistItems(uri);
     cachedUriToItems[uri] = updatedItems;
@@ -177,8 +202,12 @@ class PlaylistDataManager {
     await cacheService.cachePlaylists(db, playlists);
     await cacheService.cachePlaylistItems(db, { [uri]: updatedItems });
 
-    const likedTracks = cachedUriToItems['likedTracks'];
-    return await this.buildTrackUriToPlaylistData(playlists, cachedUriToItems, likedTracks);
+    const likedTracks = cachedUriToItems["likedTracks"];
+    return await this.buildTrackUriToPlaylistData(
+      playlists,
+      cachedUriToItems,
+      likedTracks,
+    );
   }
 
   /**
@@ -190,17 +219,24 @@ class PlaylistDataManager {
     const cachedPlaylistItems = await cacheService.getCachedPlaylistItems(db);
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
-    
+
     // 获取最新的喜欢的歌曲
     const likedTracksData = await getLikedTracks();
     const likedTracks = likedTracksData.items;
-    
+
     // 更新缓存
     await cacheService.cachePlaylistItems(db, { likedTracks });
-    localStorage.setItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT, `${likedTracks.length}`);
+    localStorage.setItem(
+      CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT,
+      `${likedTracks.length}`,
+    );
 
     const sortedPlaylists = sortPlaylistsByDate(cachedPlaylists);
-    return await this.buildTrackUriToPlaylistData(sortedPlaylists, cachedUriToItems, likedTracks);
+    return await this.buildTrackUriToPlaylistData(
+      sortedPlaylists,
+      cachedUriToItems,
+      likedTracks,
+    );
   }
 
   /**
@@ -212,21 +248,26 @@ class PlaylistDataManager {
     const cachedPlaylistItems = await cacheService.getCachedPlaylistItems(db);
 
     const playlists = await this.getPlaylistsExtra();
-    
+
     // 检查哪些播放列表需要更新
     const updatedPlaylists = playlists.filter((playlist) => {
-      const cached = cachedPlaylists.find((cached) => cached.uri === playlist.uri);
+      const cached = cachedPlaylists.find(
+        (cached) => cached.uri === playlist.uri,
+      );
       return hasPlaylistUpdated(playlist, cached);
     });
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
 
     // 获取更新的播放列表项目
-    const updatedPlaylistPromises = updatedPlaylists.map((playlist) => 
-      getPlaylistItems(playlist.uri).catch(e => {
-        console.error(`Failed to fetch items for playlist ${playlist.name} (${playlist.uri}):`, e);
+    const updatedPlaylistPromises = updatedPlaylists.map((playlist) =>
+      getPlaylistItems(playlist.uri).catch((e) => {
+        console.error(
+          `Failed to fetch items for playlist ${playlist.name} (${playlist.uri}):`,
+          e,
+        );
         return null; // Return null on error to preserve old cache
-      })
+      }),
     );
     const updatedPlaylistItems = await Promise.all(updatedPlaylistPromises);
 
@@ -242,15 +283,15 @@ class PlaylistDataManager {
 
     // 检查喜欢的歌曲是否需要更新
     const cachedLikedCount = parseInt(
-      localStorage.getItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT) || '0'
+      localStorage.getItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT) || "0",
     );
     const currentLikedCount = await getLikedTracksCount();
-    
-    let likedTracks = uriToPlaylistItems['likedTracks'];
+
+    let likedTracks = uriToPlaylistItems["likedTracks"];
     if (!likedTracks || cachedLikedCount !== currentLikedCount) {
       const likedTracksData = await getLikedTracks();
       likedTracks = likedTracksData.items;
-      uriToPlaylistItems['likedTracks'] = likedTracks;
+      uriToPlaylistItems["likedTracks"] = likedTracks;
     }
 
     // 更新缓存
@@ -258,9 +299,16 @@ class PlaylistDataManager {
     await cacheService.clearCachedPlaylistItems(db);
     await cacheService.cachePlaylists(db, playlists);
     await cacheService.cachePlaylistItems(db, uriToPlaylistItems);
-    localStorage.setItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT, `${currentLikedCount}`);
+    localStorage.setItem(
+      CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT,
+      `${currentLikedCount}`,
+    );
 
-    return await this.buildTrackUriToPlaylistData(playlists, uriToPlaylistItems, likedTracks);
+    return await this.buildTrackUriToPlaylistData(
+      playlists,
+      uriToPlaylistItems,
+      likedTracks,
+    );
   }
 }
 
@@ -268,6 +316,8 @@ class PlaylistDataManager {
 const playlistDataManager = new PlaylistDataManager();
 
 // 导出公共方法
-export const updatePlaylistData = (uri: string) => playlistDataManager.updatePlaylistData(uri);
+export const updatePlaylistData = (uri: string) =>
+  playlistDataManager.updatePlaylistData(uri);
 export const updateLikedTracks = () => playlistDataManager.updateLikedTracks();
-export const getTrackUriToPlaylistData = () => playlistDataManager.getTrackUriToPlaylistData();
+export const getTrackUriToPlaylistData = () =>
+  playlistDataManager.getTrackUriToPlaylistData();
