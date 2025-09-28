@@ -41,12 +41,12 @@ export class LayoutManager {
     minViewSize: number,
     maxPossibleLabelCount: number,
   ): number {
-      // Base case: minimum width shows only 1 label
+    // Base case: minimum width shows only 1 label
     if (width <= minViewSize) {
       return 1;
     }
 
-      // Calculate how many labels can be displayed
+    // Calculate how many labels can be displayed
     for (let i = 1; i < maxPossibleLabelCount - 1; i++) {
       const min = minViewSize + 1 + space * (i - 1);
       const max = minViewSize + 1 + space * i;
@@ -55,7 +55,7 @@ export class LayoutManager {
       }
     }
 
-      // Exceeds maximum calculation range, return max value
+    // Exceeds maximum calculation range, return max value
     const minForMax = minViewSize + 1 + space * (maxPossibleLabelCount - 2);
     return width >= minForMax ? maxPossibleLabelCount : 1;
   }

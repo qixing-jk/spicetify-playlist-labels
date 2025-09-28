@@ -24,7 +24,7 @@ export class CacheService implements DatabaseOperations {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-          // Create object stores
+        // Create object stores
         if (!db.objectStoreNames.contains("playlists")) {
           db.createObjectStore("playlists", { keyPath: "uri" });
         }
@@ -147,7 +147,7 @@ export class CacheService implements DatabaseOperations {
         request.onerror = () =>
           reject(new Error(`Transaction failed: ${request.error}`));
       } else {
-          // For operations without a return request (e.g., batch inserts)
+        // For operations without a return request (e.g., batch inserts)
         transaction.oncomplete = () => resolve(undefined as any);
         transaction.onerror = () =>
           reject(new Error(`Transaction failed: ${transaction.error}`));

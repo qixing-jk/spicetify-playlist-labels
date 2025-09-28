@@ -34,7 +34,7 @@ class PlaylistDataManager {
           playlists.push(item);
         }
       } else if (item.type === "folder" && item.items) {
-          // Recursively traverse folders, marking playlists inside "Rated" folders
+        // Recursively traverse folders, marking playlists inside "Rated" folders
         item.items.forEach((child: any) =>
           traverse(child, item.name === "Rated"),
         );
@@ -96,7 +96,7 @@ class PlaylistDataManager {
           trackUriToPlaylistData[trackUri] = [];
         }
 
-          // Avoid duplicates
+        // Avoid duplicates
         const exists = trackUriToPlaylistData[trackUri].some(
           (data) => data.uri === playlist.uri,
         );
@@ -129,7 +129,7 @@ class PlaylistDataManager {
         trackUriToPlaylistData[trackUri] = [];
       }
 
-        // Check if a "Liked Songs" label already exists
+      // Check if a "Liked Songs" label already exists
       const hasLikedTrack = trackUriToPlaylistData[trackUri].some(
         (data) => data.isLikedTracks,
       );
@@ -157,12 +157,12 @@ class PlaylistDataManager {
   ): Promise<Record<string, PlaylistData[]>> {
     const trackUriToPlaylistData: Record<string, PlaylistData[]> = {};
 
-      // Sort playlists by date
+    // Sort playlists by date
     const sortedPlaylists = sortPlaylistsByDate(playlists);
     const [ratedPlaylists, nonRatedPlaylists] =
       separateRatedPlaylists(sortedPlaylists);
 
-      // Add in order of priority: Rated Playlists > Liked Songs > Normal Playlists
+    // Add in order of priority: Rated Playlists > Liked Songs > Normal Playlists
     await this.addPlaylists(
       trackUriToPlaylistData,
       ratedPlaylists,
@@ -194,11 +194,11 @@ class PlaylistDataManager {
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
 
-      // Get updated playlist items
+    // Get updated playlist items
     const updatedItems = await getPlaylistItems(uri);
     cachedUriToItems[uri] = updatedItems;
 
-      // Recache
+    // Recache
     await cacheService.cachePlaylists(db, playlists);
     await cacheService.cachePlaylistItems(db, { [uri]: updatedItems });
 
@@ -220,11 +220,11 @@ class PlaylistDataManager {
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
 
-      // Get the latest liked tracks
+    // Get the latest liked tracks
     const likedTracksData = await getLikedTracks();
     const likedTracks = likedTracksData.items;
 
-      // Update cache
+    // Update cache
     await cacheService.cachePlaylistItems(db, { likedTracks });
     localStorage.setItem(
       CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT,
@@ -249,7 +249,7 @@ class PlaylistDataManager {
 
     const playlists = await this.getPlaylistsExtra();
 
-      // Check which playlists need updating
+    // Check which playlists need updating
     const updatedPlaylists = playlists.filter((playlist) => {
       const cached = cachedPlaylists.find(
         (cached) => cached.uri === playlist.uri,
@@ -259,7 +259,7 @@ class PlaylistDataManager {
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
 
-      // Get updated playlist items
+    // Get updated playlist items
     const updatedPlaylistPromises = updatedPlaylists.map((playlist) =>
       getPlaylistItems(playlist.uri).catch((e) => {
         console.error(
@@ -271,7 +271,7 @@ class PlaylistDataManager {
     );
     const updatedPlaylistItems = await Promise.all(updatedPlaylistPromises);
 
-      // Merge updated and cached data
+    // Merge updated and cached data
     const uriToPlaylistItems: Record<string, any[]> = { ...cachedUriToItems };
     updatedPlaylists.forEach((playlist, index) => {
       const items = updatedPlaylistItems[index];
@@ -281,7 +281,7 @@ class PlaylistDataManager {
       }
     });
 
-      // Check if liked tracks need updating
+    // Check if liked tracks need updating
     const cachedLikedCount = parseInt(
       localStorage.getItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT) || "0",
     );
@@ -294,7 +294,7 @@ class PlaylistDataManager {
       uriToPlaylistItems["likedTracks"] = likedTracks;
     }
 
-      // Update cache
+    // Update cache
     await cacheService.clearCachedPlaylists(db);
     await cacheService.clearCachedPlaylistItems(db);
     await cacheService.cachePlaylists(db, playlists);

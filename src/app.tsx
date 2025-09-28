@@ -38,7 +38,7 @@ class TracklistRenderer {
   updateTracklist(): void {
     const state = appState.getState();
 
-      // Detect tracklist changes
+    // Detect tracklist changes
     const newTracklists = getTracklistElements();
     appState.updateTracklists(newTracklists);
 
@@ -46,7 +46,7 @@ class TracklistRenderer {
       layoutManager.resetLayout();
     }
 
-      // Process each tracklist
+    // Process each tracklist
     for (const tracklist of state.tracklists) {
       this.processTracklist(tracklist);
     }
@@ -71,22 +71,22 @@ class TracklistRenderer {
   private processTrackRow(track: HTMLElement): void {
     const state = appState.getState();
 
-      // Update row height
+    // Update row height
     this.updateRowHeightIfNeeded(track);
 
     const trackUri = getTracklistTrackUri(track);
     if (!trackUri) return;
 
-      // Handle highlighted track
+    // Handle highlighted track
     this.handleTrackHighlight(track, trackUri);
 
-      // Get filtered playlist data
+    // Get filtered playlist data
     const filteredPlaylistData = this.getFilteredPlaylistData(trackUri);
 
-      // Update CSS variables
+    // Update CSS variables
     layoutManager.updateMaxExistingLabelCount(filteredPlaylistData.length);
 
-      // Handle label container
+    // Handle label container
     this.handleLabelContainer(track, trackUri, filteredPlaylistData);
   }
 
@@ -96,7 +96,7 @@ class TracklistRenderer {
   private updateRowHeightIfNeeded(track: HTMLElement): void {
     const trackStyle = getComputedStyle(track);
 
-      // Compatibility for Stats app
+    // Compatibility for Stats app
     const statsApp = document.querySelector(CONFIG.SELECTORS.STATS_APP);
     if (statsApp) {
       (statsApp as HTMLElement).style.setProperty(
@@ -147,13 +147,13 @@ class TracklistRenderer {
       `.${CSS_CLASSES.LABEL_CONTAINER}`,
     ) as HTMLElement;
 
-      // If a full update is needed, remove the existing container
+    // If a full update is needed, remove the existing container
     if (state.playlistUpdated && labelContainer) {
       labelContainer.remove();
       labelContainer = null;
     }
 
-      // Create or update the label container
+    // Create or update the label container
     if (!labelContainer && filteredPlaylistData.length > 0) {
       this.createAndRenderLabels(track, trackUri, filteredPlaylistData);
     }
@@ -190,7 +190,7 @@ class TracklistRenderer {
   private handleRemoveTrack = (playlistUri: string, trackUri: string): void => {
     removeTrackFromPlaylist(playlistUri, trackUri);
 
-      // Optimistically update UI
+    // Optimistically update UI
     const state = appState.getState();
     if (state.trackUriToPlaylistData[trackUri]) {
       const updatedData = state.trackUriToPlaylistData[trackUri].filter(
@@ -245,7 +245,7 @@ async function observerCallback(): Promise<void> {
 
     tracklistRenderer.updateTracklist();
 
-      // Start observing the new main element
+    // Start observing the new main element
     if (state.mainElement) {
       mainElementObserver.observe(state.mainElement, {
         childList: true,
@@ -259,22 +259,22 @@ async function observerCallback(): Promise<void> {
  * Main entry point for the application.
  */
 async function main(): Promise<void> {
-    // Wait for Spicetify to load
+  // Wait for Spicetify to load
   while (!Spicetify?.showNotification) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-    // Initialize state
+  // Initialize state
   const mainView = getMainViewElement();
   appState.setMainView(mainView);
 
-    // Load user settings
+  // Load user settings
   const showAllPlaylists = JSON.parse(
     localStorage.getItem(CONFIG.STORAGE_KEYS.SHOW_ALL) || "false",
   );
   appState.setShowAllPlaylists(showAllPlaylists);
 
-    // Helper function for data updates
+  // Helper function for data updates
   const updateDataAndTracklist = (promise: Promise<any>) => {
     promise.then((data) => {
       appState.setTrackUriToPlaylistData(data);
@@ -283,17 +283,17 @@ async function main(): Promise<void> {
     });
   };
 
-    // Set up event listeners
+  // Set up event listeners
   await setupEventListeners(updateDataAndTracklist);
 
-    // Create playbar button
+  // Create playbar button
   createPlaybarButton();
 
-    // Initial data load
+  // Initial data load
   const initialData = await getTrackUriToPlaylistData();
   appState.setTrackUriToPlaylistData(initialData);
 
-    // Set up observers
+  // Set up observers
   setupObservers();
 }
 
@@ -303,13 +303,13 @@ async function main(): Promise<void> {
 async function setupEventListeners(
   updateCallback: (promise: Promise<any>) => void,
 ): Promise<void> {
-    // Library update listener
+  // Library update listener
   await Spicetify.Platform.LibraryAPI.getEvents().addListener("update", () => {
     updatePromise = updatePromise.then(() => updateLikedTracks());
     updateCallback(updatePromise);
   });
 
-    // Playlist operations listener
+  // Playlist operations listener
   await Spicetify.Platform.PlaylistAPI.getEvents().addListener(
     "operation_complete",
     (event) => {
@@ -350,12 +350,12 @@ function createPlaybarButton(): void {
  * Sets up observers.
  */
 function setupObservers(): void {
-    // Main element observer
+  // Main element observer
   mainElementObserver = new MutationObserver(() => {
     tracklistRenderer.updateTracklist();
   });
 
-    // Page observer
+  // Page observer
   const pageObserver = new MutationObserver(observerCallback);
   observerCallback();
   pageObserver.observe(document.body, {
@@ -363,7 +363,7 @@ function setupObservers(): void {
     subtree: true,
   });
 
-    // Resize observer
+  // Resize observer
   const resizeObserver = new ResizeObserver(() => {
     layoutManager.calculateMaxLabelCount();
   });

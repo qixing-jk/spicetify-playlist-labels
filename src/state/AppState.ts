@@ -19,83 +19,83 @@ class AppStateManager {
     mainView: null,
   };
 
-    // Gets the full state
+  // Gets the full state
   getState(): AppState {
     return this.state;
   }
 
-    // Updates the main element
+  // Updates the main element
   updateMainElement(element: HTMLElement | null): void {
     this.state.oldMainElement = this.state.mainElement;
     this.state.mainElement = element;
   }
 
-    // Updates the tracklists
+  // Updates the tracklists
   updateTracklists(tracklists: HTMLElement[]): void {
     this.state.oldTracklists = this.state.tracklists;
     this.state.tracklists = tracklists;
   }
 
-    // Sets the playlist data
+  // Sets the playlist data
   setTrackUriToPlaylistData(data: Record<string, PlaylistData[]>): void {
     this.state.trackUriToPlaylistData = data;
   }
 
-    // Marks the playlist as updated
+  // Marks the playlist as updated
   markPlaylistUpdated(): void {
     this.state.playlistUpdated = true;
   }
 
-    // Resets the updated flag
+  // Resets the updated flag
   resetPlaylistUpdated(): void {
     this.state.playlistUpdated = false;
   }
 
-    // Toggles showing all playlists
+  // Toggles showing all playlists
   toggleShowAllPlaylists(): boolean {
     this.state.showAllPlaylists = !this.state.showAllPlaylists;
     return this.state.showAllPlaylists;
   }
 
-    // Sets whether to show all playlists
+  // Sets whether to show all playlists
   setShowAllPlaylists(show: boolean): void {
     this.state.showAllPlaylists = show;
   }
 
-    // Sets the highlighted track
+  // Sets the highlighted track
   setHighlightTrack(trackUri: string | null, path?: string | null): void {
     this.state.highlightTrack = trackUri;
     this.state.highlightTrackPath = path;
   }
 
-    // Updates the maximum label count
+  // Updates the maximum label count
   updateMaxLabelCount(count: number): void {
     this.state.maxLabelCount = count;
   }
 
-    // Updates the maximum number of existing labels
+  // Updates the maximum number of existing labels
   updateMaxExistingLabelCount(count: number): void {
     if (count > this.state.maxExistingLabelCount) {
       this.state.maxExistingLabelCount = count;
     }
   }
 
-    // Resets the maximum number of existing labels
+  // Resets the maximum number of existing labels
   resetMaxExistingLabelCount(): void {
     this.state.maxExistingLabelCount = 0;
   }
 
-    // Updates the row height
+  // Updates the row height
   updateRowHeight(height: string): void {
     this.state.rowHeight = height;
   }
 
-    // Sets the main view
+  // Sets the main view
   setMainView(view: Element | null): void {
     this.state.mainView = view;
   }
 
-    // Checks if the tracklists have changed
+  // Checks if the tracklists have changed
   hasTracklistsChanged(): boolean {
     return (
       this.state.oldTracklists.length !== this.state.tracklists.length ||
@@ -105,7 +105,7 @@ class AppStateManager {
     );
   }
 
-    // Checks if the main element has changed
+  // Checks if the main element has changed
   hasMainElementChanged(): boolean {
     return (
       !!this.state.mainElement &&

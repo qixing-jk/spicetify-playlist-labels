@@ -32,7 +32,7 @@ export function getParentProps(
 ) {
   if (!fiber) return null;
 
-    let parent = fiber.return; // Fiber parent node
+  let parent = fiber.return; // Fiber parent node
   while (parent) {
     const props = parent.memoizedProps || parent.pendingProps;
     if (props && (!filterFn || filterFn(parent))) {
