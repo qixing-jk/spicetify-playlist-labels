@@ -2,13 +2,13 @@ import { CONFIG } from "../constants";
 import { CachedPlaylistItem, DatabaseOperations } from "../types";
 
 /**
- * 缓存服务类，管理IndexedDB操作
+ * Cache service class for managing IndexedDB operations.
  */
 export class CacheService implements DatabaseOperations {
   private db: IDBDatabase | null = null;
 
   /**
-   * 获取或创建数据库连接
+   * Gets or creates a database connection.
    */
   async getDb(): Promise<IDBDatabase> {
     if (this.db) {
@@ -24,7 +24,7 @@ export class CacheService implements DatabaseOperations {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        // 创建对象存储
+          // Create object stores
         if (!db.objectStoreNames.contains("playlists")) {
           db.createObjectStore("playlists", { keyPath: "uri" });
         }
@@ -44,7 +44,7 @@ export class CacheService implements DatabaseOperations {
   }
 
   /**
-   * 获取缓存的播放列表
+   * Gets cached playlists.
    */
   async getCachedPlaylists(db: IDBDatabase): Promise<any[]> {
     return this.performTransaction(db, "playlists", "readonly", (store) =>
@@ -53,7 +53,7 @@ export class CacheService implements DatabaseOperations {
   }
 
   /**
-   * 获取缓存的播放列表项
+   * Gets cached playlist items.
    */
   async getCachedPlaylistItems(db: IDBDatabase): Promise<CachedPlaylistItem[]> {
     return this.performTransaction(db, "playlistItems", "readonly", (store) =>
@@ -62,7 +62,7 @@ export class CacheService implements DatabaseOperations {
   }
 
   /**
-   * 缓存播放列表
+   * Caches playlists.
    */
   async cachePlaylists(db: IDBDatabase, playlists: any[]): Promise<void> {
     return this.performTransaction(db, "playlists", "readwrite", (store) => {
@@ -71,7 +71,7 @@ export class CacheService implements DatabaseOperations {
   }
 
   /**
-   * 缓存播放列表项
+   * Caches playlist items.
    */
   async cachePlaylistItems(
     db: IDBDatabase,
@@ -90,7 +90,7 @@ export class CacheService implements DatabaseOperations {
   }
 
   /**
-   * 清除缓存的播放列表
+   * Clears cached playlists.
    */
   async clearCachedPlaylists(db: IDBDatabase): Promise<void> {
     return this.performTransaction(db, "playlists", "readwrite", (store) =>
@@ -99,7 +99,7 @@ export class CacheService implements DatabaseOperations {
   }
 
   /**
-   * 清除缓存的播放列表项
+   * Clears cached playlist items.
    */
   async clearCachedPlaylistItems(db: IDBDatabase): Promise<void> {
     return this.performTransaction(db, "playlistItems", "readwrite", (store) =>
@@ -128,7 +128,7 @@ export class CacheService implements DatabaseOperations {
   }
 
   /**
-   * 执行数据库事务的通用方法
+   * Generic method for performing database transactions.
    */
   private async performTransaction<T>(
     db: IDBDatabase,
@@ -147,7 +147,7 @@ export class CacheService implements DatabaseOperations {
         request.onerror = () =>
           reject(new Error(`Transaction failed: ${request.error}`));
       } else {
-        // 对于没有返回请求的操作（如批量插入）
+          // For operations without a return request (e.g., batch inserts)
         transaction.oncomplete = () => resolve(undefined as any);
         transaction.onerror = () =>
           reject(new Error(`Transaction failed: ${transaction.error}`));
@@ -156,5 +156,5 @@ export class CacheService implements DatabaseOperations {
   }
 }
 
-// 导出单例实例
+// Export a singleton instance
 export const cacheService = new CacheService();

@@ -3,11 +3,11 @@ import { appState } from "../state/AppState";
 import { updateCSSVariable } from "../utils/dom";
 
 /**
- * 布局管理器，负责计算和管理播放列表标签的显示
+ * Layout manager responsible for calculating and managing the display of playlist labels.
  */
 export class LayoutManager {
   /**
-   * 计算并更新最大标签数量
+   * Calculates and updates the maximum number of labels.
    */
   calculateMaxLabelCount(): void {
     const state = appState.getState();
@@ -33,7 +33,7 @@ export class LayoutManager {
   }
 
   /**
-   * 根据宽度计算标签数量
+   * Calculates the number of labels based on width.
    */
   private calculateLabelCountByWidth(
     width: number,
@@ -41,12 +41,12 @@ export class LayoutManager {
     minViewSize: number,
     maxPossibleLabelCount: number,
   ): number {
-    // 基础情况：最小宽度只显示1个标签
+      // Base case: minimum width shows only 1 label
     if (width <= minViewSize) {
       return 1;
     }
 
-    // 计算能显示多少标签
+      // Calculate how many labels can be displayed
     for (let i = 1; i < maxPossibleLabelCount - 1; i++) {
       const min = minViewSize + 1 + space * (i - 1);
       const max = minViewSize + 1 + space * i;
@@ -55,13 +55,13 @@ export class LayoutManager {
       }
     }
 
-    // 超过最大计算范围，返回最大值
+      // Exceeds maximum calculation range, return max value
     const minForMax = minViewSize + 1 + space * (maxPossibleLabelCount - 2);
     return width >= minForMax ? maxPossibleLabelCount : 1;
   }
 
   /**
-   * 更新行高并重新计算布局
+   * Updates row height and recalculates layout.
    */
   updateRowHeight(newHeight: string): void {
     const state = appState.getState();
@@ -74,7 +74,7 @@ export class LayoutManager {
   }
 
   /**
-   * 更新最大现有标签数量
+   * Updates the maximum number of existing labels.
    */
   updateMaxExistingLabelCount(count: number): void {
     const state = appState.getState();
@@ -85,12 +85,12 @@ export class LayoutManager {
   }
 
   /**
-   * 重置布局状态
+   * Resets the layout state.
    */
   resetLayout(): void {
     appState.resetMaxExistingLabelCount();
   }
 }
 
-// 导出单例实例
+// Export a singleton instance
 export const layoutManager = new LayoutManager();

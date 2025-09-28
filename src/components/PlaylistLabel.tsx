@@ -50,7 +50,7 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
       placement="top"
     >
       <div>
-        {/*<Spicetify.ReactComponent.RightClickMenu */}
+          {/*<Spicetify.ReactComponent.RightClickMenu*/}
         {/*  placement="bottom-end"*/}
         {/*  menu={contextMenu}*/}
         {/*>*/}

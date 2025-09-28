@@ -1,7 +1,7 @@
 import { AppState, PlaylistData } from "../types";
 import { CONFIG } from "../constants";
 
-// 应用状态管理类
+// Application state management class
 class AppStateManager {
   private state: AppState = {
     oldMainElement: null,
@@ -19,83 +19,83 @@ class AppStateManager {
     mainView: null,
   };
 
-  // 获取完整状态
+    // Gets the full state
   getState(): AppState {
     return this.state;
   }
 
-  // 更新主元素
+    // Updates the main element
   updateMainElement(element: HTMLElement | null): void {
     this.state.oldMainElement = this.state.mainElement;
     this.state.mainElement = element;
   }
 
-  // 更新轨道列表
+    // Updates the tracklists
   updateTracklists(tracklists: HTMLElement[]): void {
     this.state.oldTracklists = this.state.tracklists;
     this.state.tracklists = tracklists;
   }
 
-  // 设置播放列表数据
+    // Sets the playlist data
   setTrackUriToPlaylistData(data: Record<string, PlaylistData[]>): void {
     this.state.trackUriToPlaylistData = data;
   }
 
-  // 标记播放列表已更新
+    // Marks the playlist as updated
   markPlaylistUpdated(): void {
     this.state.playlistUpdated = true;
   }
 
-  // 重置更新标志
+    // Resets the updated flag
   resetPlaylistUpdated(): void {
     this.state.playlistUpdated = false;
   }
 
-  // 切换显示所有播放列表
+    // Toggles showing all playlists
   toggleShowAllPlaylists(): boolean {
     this.state.showAllPlaylists = !this.state.showAllPlaylists;
     return this.state.showAllPlaylists;
   }
 
-  // 设置显示所有播放列表
+    // Sets whether to show all playlists
   setShowAllPlaylists(show: boolean): void {
     this.state.showAllPlaylists = show;
   }
 
-  // 设置高亮轨道
+    // Sets the highlighted track
   setHighlightTrack(trackUri: string | null, path?: string | null): void {
     this.state.highlightTrack = trackUri;
     this.state.highlightTrackPath = path;
   }
 
-  // 更新最大标签数量
+    // Updates the maximum label count
   updateMaxLabelCount(count: number): void {
     this.state.maxLabelCount = count;
   }
 
-  // 更新最大现有标签数量
+    // Updates the maximum number of existing labels
   updateMaxExistingLabelCount(count: number): void {
     if (count > this.state.maxExistingLabelCount) {
       this.state.maxExistingLabelCount = count;
     }
   }
 
-  // 重置最大现有标签数量
+    // Resets the maximum number of existing labels
   resetMaxExistingLabelCount(): void {
     this.state.maxExistingLabelCount = 0;
   }
 
-  // 更新行高
+    // Updates the row height
   updateRowHeight(height: string): void {
     this.state.rowHeight = height;
   }
 
-  // 设置主视图
+    // Sets the main view
   setMainView(view: Element | null): void {
     this.state.mainView = view;
   }
 
-  // 检查轨道列表是否改变
+    // Checks if the tracklists have changed
   hasTracklistsChanged(): boolean {
     return (
       this.state.oldTracklists.length !== this.state.tracklists.length ||
@@ -105,7 +105,7 @@ class AppStateManager {
     );
   }
 
-  // 检查主元素是否改变
+    // Checks if the main element has changed
   hasMainElementChanged(): boolean {
     return (
       !!this.state.mainElement &&
@@ -114,5 +114,5 @@ class AppStateManager {
   }
 }
 
-// 导出单例实例
+// Export a singleton instance
 export const appState = new AppStateManager();

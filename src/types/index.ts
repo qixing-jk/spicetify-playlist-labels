@@ -1,4 +1,4 @@
-// 播放列表数据接口
+// Playlist data interface
 export interface PlaylistData {
   isOwnPlaylist: boolean;
   isLikedTracks: boolean;
@@ -8,7 +8,7 @@ export interface PlaylistData {
   image: string;
 }
 
-// 应用状态接口
+// App state interface
 export interface AppState {
   oldMainElement: HTMLElement | null;
   mainElement: HTMLElement | null;
@@ -25,7 +25,7 @@ export interface AppState {
   mainView: Element | null;
 }
 
-// 缓存相关类型
+// Cache-related types
 export interface CachedPlaylistItem {
   uri: string;
   items: any[];
@@ -41,7 +41,7 @@ export interface PlaylistExtra {
   isRatedPlaylist?: boolean;
 }
 
-// 数据库操作接口
+// Database operations interface
 export interface DatabaseOperations {
   getDb(): Promise<IDBDatabase>;
   getCachedPlaylists(db: IDBDatabase): Promise<any[]>;
@@ -52,10 +52,10 @@ export interface DatabaseOperations {
   clearCachedPlaylistItems(db: IDBDatabase): Promise<void>;
 }
 
-// 工具函数类型
+// Utility function types
 export type FilterFunction = (parent: any) => boolean;
 
-// 事件处理器类型
+// Event handler types
 export type ButtonClickHandler = (
   buttonElement: Spicetify.Playbar.Button,
 ) => void;

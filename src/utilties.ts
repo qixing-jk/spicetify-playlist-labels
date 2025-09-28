@@ -3,8 +3,8 @@ interface DomWithFiber extends HTMLElement {
 }
 
 /**
- * 从 DOM 节点获取对应的 React Fiber 节点
- * 支持 React 17/18
+ * Gets the corresponding React Fiber node from a DOM node.
+ * Supports React 17/18.
  */
 export function getFiberFromDom(dom: HTMLElement) {
   const fiberDom = dom as DomWithFiber;
@@ -21,10 +21,10 @@ export function getFiberFromDom(dom: HTMLElement) {
 }
 
 /**
- * 向上遍历 Fiber 树获取第一个有 props 的父组件
- * @param {Object} fiber - 起始 Fiber 节点
- * @param {Function} filterFn - 可选，过滤函数，返回 true 表示匹配目标父组件
- * @returns {Object|null} - 找到的父组件 props 或 null
+ * Traverses up the Fiber tree to get the first parent component with props.
+ * @param {Object} fiber - The starting Fiber node.
+ * @param {Function} filterFn - Optional filter function that returns true for a matching parent.
+ * @returns {Object|null} - The found parent component's props or null.
  */
 export function getParentProps(
   fiber: { return: any },
@@ -32,7 +32,7 @@ export function getParentProps(
 ) {
   if (!fiber) return null;
 
-  let parent = fiber.return; // Fiber 父节点
+    let parent = fiber.return; // Fiber parent node
   while (parent) {
     const props = parent.memoizedProps || parent.pendingProps;
     if (props && (!filterFn || filterFn(parent))) {

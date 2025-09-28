@@ -16,11 +16,11 @@ import {
 } from "./utils/filters";
 
 /**
- * 播放列表数据管理类
+ * Manages playlist data.
  */
 class PlaylistDataManager {
   /**
-   * 从根列表内容中提取播放列表
+   * Extracts playlists from the rootlist contents.
    */
   private getPlaylistsFromContents(contents: any): [any[], any[]] {
     const playlists: any[] = [];
@@ -34,7 +34,7 @@ class PlaylistDataManager {
           playlists.push(item);
         }
       } else if (item.type === "folder" && item.items) {
-        // 递归遍历文件夹，标记"Rated"文件夹内的播放列表
+          // Recursively traverse folders, marking playlists inside "Rated" folders
         item.items.forEach((child: any) =>
           traverse(child, item.name === "Rated"),
         );
@@ -46,7 +46,7 @@ class PlaylistDataManager {
   }
 
   /**
-   * 获取带有额外信息的播放列表
+   * Gets playlists with extra information.
    */
   private async getPlaylistsExtra(): Promise<PlaylistExtra[]> {
     const contents = await getContents();
@@ -62,7 +62,7 @@ class PlaylistDataManager {
   }
 
   /**
-   * 添加播放列表到轨道数据映射
+   * Adds playlists to the track data map.
    */
   private async addPlaylists(
     trackUriToPlaylistData: Record<string, PlaylistData[]>,
@@ -96,7 +96,7 @@ class PlaylistDataManager {
           trackUriToPlaylistData[trackUri] = [];
         }
 
-        // 避免重复添加
+          // Avoid duplicates
         const exists = trackUriToPlaylistData[trackUri].some(
           (data) => data.uri === playlist.uri,
         );
@@ -116,7 +116,7 @@ class PlaylistDataManager {
   }
 
   /**
-   * 添加喜欢的歌曲到轨道数据映射
+   * Adds liked tracks to the track data map.
    */
   private addLikedTracks(
     trackUriToPlaylistData: Record<string, PlaylistData[]>,
@@ -129,7 +129,7 @@ class PlaylistDataManager {
         trackUriToPlaylistData[trackUri] = [];
       }
 
-      // 检查是否已经存在喜欢的歌曲标签
+        // Check if a "Liked Songs" label already exists
       const hasLikedTrack = trackUriToPlaylistData[trackUri].some(
         (data) => data.isLikedTracks,
       );
@@ -148,7 +148,7 @@ class PlaylistDataManager {
   }
 
   /**
-   * 构建轨道到播放列表的数据映射
+   * Builds the track URI to playlist data map.
    */
   private async buildTrackUriToPlaylistData(
     playlists: PlaylistExtra[],
@@ -157,12 +157,12 @@ class PlaylistDataManager {
   ): Promise<Record<string, PlaylistData[]>> {
     const trackUriToPlaylistData: Record<string, PlaylistData[]> = {};
 
-    // 按日期排序播放列表
+      // Sort playlists by date
     const sortedPlaylists = sortPlaylistsByDate(playlists);
     const [ratedPlaylists, nonRatedPlaylists] =
       separateRatedPlaylists(sortedPlaylists);
 
-    // 按优先级顺序添加：评级播放列表 > 喜欢的歌曲 > 普通播放列表
+      // Add in order of priority: Rated Playlists > Liked Songs > Normal Playlists
     await this.addPlaylists(
       trackUriToPlaylistData,
       ratedPlaylists,
@@ -183,7 +183,7 @@ class PlaylistDataManager {
   }
 
   /**
-   * 更新特定播放列表的数据
+   * Updates data for a specific playlist.
    */
   async updatePlaylistData(
     uri: string,
@@ -194,11 +194,11 @@ class PlaylistDataManager {
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
 
-    // 获取更新的播放列表项目
+      // Get updated playlist items
     const updatedItems = await getPlaylistItems(uri);
     cachedUriToItems[uri] = updatedItems;
 
-    // 重新缓存
+      // Recache
     await cacheService.cachePlaylists(db, playlists);
     await cacheService.cachePlaylistItems(db, { [uri]: updatedItems });
 
@@ -211,7 +211,7 @@ class PlaylistDataManager {
   }
 
   /**
-   * 更新喜欢的歌曲数据
+   * Updates liked tracks data.
    */
   async updateLikedTracks(): Promise<Record<string, PlaylistData[]>> {
     const db = await cacheService.getDb();
@@ -220,11 +220,11 @@ class PlaylistDataManager {
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
 
-    // 获取最新的喜欢的歌曲
+      // Get the latest liked tracks
     const likedTracksData = await getLikedTracks();
     const likedTracks = likedTracksData.items;
 
-    // 更新缓存
+      // Update cache
     await cacheService.cachePlaylistItems(db, { likedTracks });
     localStorage.setItem(
       CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT,
@@ -240,7 +240,7 @@ class PlaylistDataManager {
   }
 
   /**
-   * 获取完整的轨道到播放列表数据映射
+   * Gets the complete track URI to playlist data map.
    */
   async getTrackUriToPlaylistData(): Promise<Record<string, PlaylistData[]>> {
     const db = await cacheService.getDb();
@@ -249,7 +249,7 @@ class PlaylistDataManager {
 
     const playlists = await this.getPlaylistsExtra();
 
-    // 检查哪些播放列表需要更新
+      // Check which playlists need updating
     const updatedPlaylists = playlists.filter((playlist) => {
       const cached = cachedPlaylists.find(
         (cached) => cached.uri === playlist.uri,
@@ -259,7 +259,7 @@ class PlaylistDataManager {
 
     const cachedUriToItems = buildUriToPlaylistItems(cachedPlaylistItems);
 
-    // 获取更新的播放列表项目
+      // Get updated playlist items
     const updatedPlaylistPromises = updatedPlaylists.map((playlist) =>
       getPlaylistItems(playlist.uri).catch((e) => {
         console.error(
@@ -271,7 +271,7 @@ class PlaylistDataManager {
     );
     const updatedPlaylistItems = await Promise.all(updatedPlaylistPromises);
 
-    // 合并更新和缓存的数据
+      // Merge updated and cached data
     const uriToPlaylistItems: Record<string, any[]> = { ...cachedUriToItems };
     updatedPlaylists.forEach((playlist, index) => {
       const items = updatedPlaylistItems[index];
@@ -281,7 +281,7 @@ class PlaylistDataManager {
       }
     });
 
-    // 检查喜欢的歌曲是否需要更新
+      // Check if liked tracks need updating
     const cachedLikedCount = parseInt(
       localStorage.getItem(CONFIG.STORAGE_KEYS.LIKED_TRACKS_COUNT) || "0",
     );
@@ -294,7 +294,7 @@ class PlaylistDataManager {
       uriToPlaylistItems["likedTracks"] = likedTracks;
     }
 
-    // 更新缓存
+      // Update cache
     await cacheService.clearCachedPlaylists(db);
     await cacheService.clearCachedPlaylistItems(db);
     await cacheService.cachePlaylists(db, playlists);
@@ -312,10 +312,10 @@ class PlaylistDataManager {
   }
 }
 
-// 创建单例实例
+// Create a singleton instance
 const playlistDataManager = new PlaylistDataManager();
 
-// 导出公共方法
+// Export public methods
 export const updatePlaylistData = (uri: string) =>
   playlistDataManager.updatePlaylistData(uri);
 export const updateLikedTracks = () => playlistDataManager.updateLikedTracks();

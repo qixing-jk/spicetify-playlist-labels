@@ -2,19 +2,19 @@ import { PlaylistData } from "../types";
 import { isCurrentPlaylistPage } from "./dom";
 
 /**
- * 过滤播放列表数据
+ * Filters playlist data.
  */
 export function filterPlaylistData(
   playlistData: PlaylistData[],
   showAllPlaylists: boolean,
 ): PlaylistData[] {
   return playlistData.filter((data) => {
-    // 如果不显示所有播放列表且用户不拥有该播放列表，则过滤掉
+    // Filter out playlists the user doesn't own if not showing all
     if (!showAllPlaylists && !data.isOwnPlaylist) {
       return false;
     }
 
-    // 不显示当前正在查看的播放列表的标签
+    // Don't show a label for the playlist currently being viewed
     if (isCurrentPlaylistPage(data)) {
       return false;
     }
@@ -24,7 +24,7 @@ export function filterPlaylistData(
 }
 
 /**
- * 按日期排序播放列表
+ * Sorts playlists by date.
  */
 export function sortPlaylistsByDate(playlists: any[]): any[] {
   return playlists.sort(
@@ -33,7 +33,7 @@ export function sortPlaylistsByDate(playlists: any[]): any[] {
 }
 
 /**
- * 分离评级播放列表和普通播放列表
+ * Separates rated and non-rated playlists.
  */
 export function separateRatedPlaylists(playlists: any[]): [any[], any[]] {
   const ratedPlaylists = playlists.filter(
@@ -46,7 +46,7 @@ export function separateRatedPlaylists(playlists: any[]): [any[], any[]] {
 }
 
 /**
- * 检查播放列表是否有更新
+ * Checks if a playlist has been updated.
  */
 export function hasPlaylistUpdated(
   playlist: any,
@@ -56,7 +56,7 @@ export function hasPlaylistUpdated(
 }
 
 /**
- * 构建URI到播放列表项的映射
+ * Builds a map from URI to playlist items.
  */
 export function buildUriToPlaylistItems(
   cachedPlaylistItems: any[],

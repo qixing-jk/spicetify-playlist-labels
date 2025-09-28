@@ -3,7 +3,7 @@ import { getFiberFromDom, getParentProps } from "../utilties";
 import { PlaylistData } from "../types";
 
 /**
- * 从Spotify播放列表URI提取播放列表ID
+ * Extracts the playlist ID from a Spotify playlist URI.
  */
 export function playlistUriToPlaylistId(
   uri: string | null,
@@ -12,7 +12,7 @@ export function playlistUriToPlaylistId(
 }
 
 /**
- * 获取轨道行的URI
+ * Gets the URI for a track row.
  */
 export function getTracklistTrackUri(tracklistElement: Element): string | null {
   const tracklistParentElement = tracklistElement.parentElement;
@@ -35,14 +35,14 @@ export function getTracklistTrackUri(tracklistElement: Element): string | null {
 }
 
 /**
- * 更新CSS变量
+ * Updates a CSS variable.
  */
 export function updateCSSVariable(variable: string, value: string): void {
   document.documentElement.style.setProperty(variable, value);
 }
 
 /**
- * 获取所有轨道列表元素
+ * Gets all tracklist elements.
  */
 export function getTracklistElements(): HTMLElement[] {
   return Array.from(
@@ -51,7 +51,7 @@ export function getTracklistElements(): HTMLElement[] {
 }
 
 /**
- * 获取轨道行元素
+ * Gets track row elements.
  */
 export function getTrackRowElements(
   tracklist: Element,
@@ -60,21 +60,21 @@ export function getTrackRowElements(
 }
 
 /**
- * 获取主元素
+ * Gets the main element.
  */
 export function getMainElement(): HTMLElement | null {
   return document.querySelector(CONFIG.SELECTORS.MAIN);
 }
 
 /**
- * 获取主视图元素
+ * Gets the main view element.
  */
 export function getMainViewElement(): Element | null {
   return document.querySelector(CONFIG.SELECTORS.MAIN_VIEW);
 }
 
 /**
- * 创建标签容器元素
+ * Creates a label container element.
  */
 export function createLabelContainer(): HTMLDivElement {
   const container = document.createElement("div");
@@ -83,7 +83,7 @@ export function createLabelContainer(): HTMLDivElement {
 }
 
 /**
- * 插入标签容器到轨道行
+ * Inserts a label container into a track row.
  */
 export function insertLabelContainer(
   track: Element,
@@ -96,7 +96,7 @@ export function insertLabelContainer(
 }
 
 /**
- * 检查是否在当前播放列表页面
+ * Checks if the current page is the playlist page.
  */
 export function isCurrentPlaylistPage(playlistData: PlaylistData): boolean {
   if (!playlistData.isLikedTracks) {
