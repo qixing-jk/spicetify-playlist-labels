@@ -31,6 +31,9 @@ export class CacheService implements DatabaseOperations {
         if (!db.objectStoreNames.contains("playlistItems")) {
           db.createObjectStore("playlistItems", { keyPath: "uri" });
         }
+        if (!db.objectStoreNames.contains("playlistMetadata")) {
+          db.createObjectStore("playlistMetadata", { keyPath: "uri" });
+        }
       };
 
       request.onsuccess = (event) => {
@@ -86,6 +89,16 @@ export class CacheService implements DatabaseOperations {
    */
   async clearCachedPlaylistItems(db: IDBDatabase): Promise<void> {
     return this.performTransaction(db, "playlistItems", "readwrite", (store) => store.clear());
+  }
+
+  async getCachedPlaylistMetadata(db: IDBDatabase, uri: string): Promise<any> {
+    return this.performTransaction(db, "playlistMetadata", "readonly", (store) => store.get(uri));
+  }
+
+  async cachePlaylistMetadata(db: IDBDatabase, metadata: any): Promise<void> {
+    return this.performTransaction(db, "playlistMetadata", "readwrite", (store) => {
+      store.put(metadata);
+    });
   }
 
   /**

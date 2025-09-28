@@ -1,3 +1,4 @@
+import { cacheService } from './services/CacheService';
 /**
  * Fetches the contents of the user's rootlist, including playlists and folders.
  * @returns {Promise<any>} A promise that resolves with the rootlist contents.
@@ -19,9 +20,22 @@ export async function getLikedTracksCount() {
  * @param {string} uri - The Spotify URI of the playlist.
  * @returns {Promise<any[]>} A promise that resolves with an array of playlist items.
  */
-export async function getPlaylistItems(uri: any) {
+export async function getPlaylistItems(uri: string) {
     const result = await Spicetify.Platform.PlaylistAPI.getContents(uri)
     return result.items;
+}
+
+export async function getPlaylistMetadata(uri: string) {
+    const db = await cacheService.getDb();
+    const cachedMetadata = await cacheService.getCachedPlaylistMetadata(db, uri);
+
+    if (cachedMetadata) {
+        return cachedMetadata;
+    }
+
+    const metadata = await Spicetify.Platform.PlaylistAPI.getMetadata(uri);
+    await cacheService.cachePlaylistMetadata(db, metadata);
+    return metadata;
 }
 
 /**
@@ -30,7 +44,7 @@ export async function getPlaylistItems(uri: any) {
  * @param {string} trackUri - The Spotify URI of the track to be removed.
  * @returns {Promise<void>}
  */
-export async function removeTrackFromPlaylist(playlistUri: any, trackUri: string) {
+export async function removeTrackFromPlaylist(playlistUri: string, trackUri: string) {
     await Spicetify.Platform.PlaylistAPI.remove(playlistUri, [{ uri: trackUri, uid: "" }]);
 }
 
