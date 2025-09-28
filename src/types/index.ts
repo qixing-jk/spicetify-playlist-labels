@@ -51,4 +51,3 @@ export interface DatabaseOperations {
   clearCachedPlaylists(db: IDBDatabase): Promise<void>;
   clearCachedPlaylistItems(db: IDBDatabase): Promise<void>;
 }
-
