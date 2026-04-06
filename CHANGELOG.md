@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.3.0...v1.4.0) (2026-04-06)
+
+
+### Features
+
+* move playlist visibility toggle from playbar to label menus ([eb518f1](https://github.com/qixing-jk/spicetify-playlist-labels/commit/eb518f167136ae093b88272323dfefbb688d46b0))
+
 ## [1.3.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.2.0...v1.3.0) (2026-04-06)
 
 
