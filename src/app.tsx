@@ -26,7 +26,7 @@ import { filterPlaylistData } from "./utils/filters";
 
 // Global observers and update promise
 let mainElementObserver: MutationObserver;
-let updatePromise = Promise.resolve();
+let updatePromise: Promise<void> = Promise.resolve();
 
 /**
  * Manages rendering of the tracklist.
@@ -145,7 +145,7 @@ class TracklistRenderer {
     const state = appState.getState();
     let labelContainer = track.querySelector(
       `.${CSS_CLASSES.LABEL_CONTAINER}`,
-    ) as HTMLElement;
+    ) as HTMLElement | null;
 
     // If a full update is needed, remove the existing container
     if (state.playlistUpdated && labelContainer) {
@@ -305,18 +305,20 @@ async function setupEventListeners(
 ): Promise<void> {
   // Library update listener
   await Spicetify.Platform.LibraryAPI.getEvents().addListener("update", () => {
-    updatePromise = updatePromise.then(() => updateLikedTracks());
-    updateCallback(updatePromise);
+    const nextUpdate = updatePromise.then(() => updateLikedTracks());
+    updatePromise = nextUpdate.then(() => undefined);
+    updateCallback(nextUpdate);
   });
 
   // Playlist operations listener
   await Spicetify.Platform.PlaylistAPI.getEvents().addListener(
     "operation_complete",
-    (event) => {
-      updatePromise = updatePromise.then(() =>
+    (event: { data: { uri: string } }) => {
+      const nextUpdate = updatePromise.then(() =>
         updatePlaylistData(event.data.uri),
       );
-      updateCallback(updatePromise);
+      updatePromise = nextUpdate.then(() => undefined);
+      updateCallback(nextUpdate);
     },
   );
 }
