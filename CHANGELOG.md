@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.2.0...v1.3.0) (2026-04-06)
+
+
+### Features
+
+* support removing tracks from liked songs ([0175cfe](https://github.com/qixing-jk/spicetify-playlist-labels/commit/0175cfe26171de02a09200272854002d1e083532))
+* **ui:** add remove button to playlist overflow menu ([ff085ae](https://github.com/qixing-jk/spicetify-playlist-labels/commit/ff085aed9847fa309a8e8992274ac41dfd05d241))
+* **ui:** implement custom context menu for playlist labels ([fba7dfa](https://github.com/qixing-jk/spicetify-playlist-labels/commit/fba7dfa26b3cef0d5392d13f0fac685db21c9750))
+
 ## [1.2.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.1.0...v1.2.0) (2026-04-06)
 
 
