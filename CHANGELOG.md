@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.1.0...v1.2.0) (2026-04-06)
+
+
+### Features
+
+* **ui:** add media thumbnails to playlist label overflow menu ([e91b9c8](https://github.com/qixing-jk/spicetify-playlist-labels/commit/e91b9c86489b3d19a9e0dd215d0ccfb092f22983))
+* **ui:** replace ellipsis overflow with interactive button ([9ed2f6a](https://github.com/qixing-jk/spicetify-playlist-labels/commit/9ed2f6aa450581d1dedf69e73511bdf02fff1b2e)), closes [#11](https://github.com/qixing-jk/spicetify-playlist-labels/issues/11)
+
+
+### Bug Fixes
+
+* **css:** restore original right-aligned playlist labels flow ([d629f13](https://github.com/qixing-jk/spicetify-playlist-labels/commit/d629f135e39f191e1f8438b02ffba3b851d5c66a))
+
 ## [1.1.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.0.0...v1.1.0) (2025-09-28)
 
 
