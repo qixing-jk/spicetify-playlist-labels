@@ -80,8 +80,11 @@ class TracklistRenderer {
     // Handle highlighted track
     this.handleTrackHighlight(track, trackUri);
 
-    // Get filtered playlist data
-    const filteredPlaylistData = this.getFilteredPlaylistData(trackUri);
+    // Get playlist data for rendering
+    const filteredPlaylistData = filterPlaylistData(
+      this.getPlaylistData(trackUri),
+      state.showAllPlaylists,
+    );
 
     // Update CSS variables
     layoutManager.updateMaxExistingLabelCount(filteredPlaylistData.length);
@@ -128,10 +131,8 @@ class TracklistRenderer {
   /**
    * Gets filtered playlist data.
    */
-  private getFilteredPlaylistData(trackUri: string): PlaylistData[] {
-    const state = appState.getState();
-    const playlistData = state.trackUriToPlaylistData[trackUri] ?? [];
-    return filterPlaylistData(playlistData, state.showAllPlaylists);
+  private getPlaylistData(trackUri: string): PlaylistData[] {
+    return appState.getState().trackUriToPlaylistData[trackUri] ?? [];
   }
 
   /**
@@ -175,8 +176,10 @@ class TracklistRenderer {
         playlistData={filteredPlaylistData}
         trackUri={trackUri}
         maxLabelCount={state.maxLabelCount}
+        showAllPlaylists={state.showAllPlaylists}
         onRemoveTrack={this.handleRemoveTrack}
         onNavigateToPlaylist={this.handleNavigateToPlaylist}
+        onToggleShowAllPlaylists={this.handleToggleShowAllPlaylists}
       />,
       labelContainer,
     );
@@ -230,6 +233,19 @@ class TracklistRenderer {
         search: `?uid=${playlistData.trackUid}`,
       });
     }
+  };
+
+  /**
+   * Toggles whether to show all saved playlists.
+   */
+  private handleToggleShowAllPlaylists = (): void => {
+    const newShowAllState = appState.toggleShowAllPlaylists();
+    localStorage.setItem(
+      CONFIG.STORAGE_KEYS.SHOW_ALL,
+      JSON.stringify(newShowAllState),
+    );
+    appState.markPlaylistUpdated();
+    this.updateTracklist();
   };
 }
 
@@ -294,9 +310,6 @@ async function main(): Promise<void> {
   // Set up event listeners
   await setupEventListeners(updateDataAndTracklist);
 
-  // Create playbar button
-  createPlaybarButton();
-
   // Initial data load
   const initialData = await getTrackUriToPlaylistData();
   appState.setTrackUriToPlaylistData(initialData);
@@ -328,31 +341,6 @@ async function setupEventListeners(
       updatePromise = nextUpdate.then(() => undefined);
       updateCallback(nextUpdate);
     },
-  );
-}
-
-/**
- * Creates the playbar button.
- */
-function createPlaybarButton(): void {
-  const handleButtonClick = (buttonElement: Spicetify.Playbar.Button) => {
-    const newShowAllState = appState.toggleShowAllPlaylists();
-    buttonElement.active = newShowAllState;
-    localStorage.setItem(
-      CONFIG.STORAGE_KEYS.SHOW_ALL,
-      JSON.stringify(newShowAllState),
-    );
-    appState.markPlaylistUpdated();
-    tracklistRenderer.updateTracklist();
-  };
-
-  const iconHTML = `<svg data-encore-id="icon" role="img" viewBox="0 0 16 16" class="Svg-img-icon-small">${Spicetify.SVGIcons["spotify"]}</svg>`;
-  new Spicetify.Playbar.Button(
-    "Show All Saved Playlists",
-    iconHTML,
-    handleButtonClick,
-    false,
-    appState.getState().showAllPlaylists,
   );
 }
 

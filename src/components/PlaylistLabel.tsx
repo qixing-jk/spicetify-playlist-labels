@@ -1,35 +1,34 @@
 import React from "react";
 import { PlaylistData } from "../types";
 import { CSS_CLASSES } from "../constants";
+import { FloatingMenu, type FloatingMenuPosition } from "./FloatingMenu";
 import {
-  FloatingMenu,
-  RemoveIcon,
-  type FloatingMenuPosition,
-} from "./FloatingMenu";
+  getRemoveActionLabel,
+  getShowAllToggleLabel,
+  MenuActionItem,
+} from "./PlaylistMenuItems";
 import { useDismissibleLayer } from "../hooks/useDismissibleLayer";
 
 const VIEWPORT_PADDING = 8;
 const CONTEXT_MENU_MIN_WIDTH = 220;
 const CONTEXT_MENU_ITEM_HEIGHT = 44;
 
-function getRemoveActionLabel(playlistData: PlaylistData): string {
-  return playlistData.isLikedTracks
-    ? "Unlike track"
-    : `Remove from ${playlistData.name}`;
-}
-
 interface PlaylistLabelProps {
   playlistData: PlaylistData;
   trackUri: string;
+  showAllPlaylists: boolean;
   onRemoveTrack: (playlistData: PlaylistData, trackUri: string) => void;
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
+  onToggleShowAllPlaylists: () => void;
 }
 
 export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   playlistData,
   trackUri,
+  showAllPlaylists,
   onRemoveTrack,
   onNavigateToPlaylist,
+  onToggleShowAllPlaylists,
 }) => {
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
@@ -51,6 +50,12 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
     event.stopPropagation();
     closeContextMenu();
     onRemoveTrack(playlistData, trackUri);
+  };
+
+  const handleToggleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    closeContextMenu();
+    onToggleShowAllPlaylists();
   };
 
   const handleLabelClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -88,26 +93,16 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   const contextMenu =
     isContextMenuOpen && menuPosition ? (
       <FloatingMenu menuRef={menuRef} position={menuPosition}>
-        <li role="presentation" className="main-contextMenu-menuItem">
-          <button
-            type="button"
-            className="main-contextMenu-menuItemButton"
-            onClick={handleRemoveClick}
-            role="menuitem"
-            tabIndex={-1}
-          >
-            <RemoveIcon
-              className={CSS_CLASSES.CONTEXT_MENU_ICON}
-              iconName={playlistData.isLikedTracks ? "heart-active" : "x"}
-            />
-            <span
-              className="e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel"
-              dir="auto"
-            >
-              {getRemoveActionLabel(playlistData)}
-            </span>
-          </button>
-        </li>
+        <MenuActionItem
+          iconName={playlistData.isLikedTracks ? "heart-active" : "x"}
+          label={getRemoveActionLabel(playlistData)}
+          onClick={handleRemoveClick}
+        />
+        <MenuActionItem
+          iconName="playlist"
+          label={getShowAllToggleLabel(showAllPlaylists)}
+          onClick={handleToggleClick}
+        />
       </FloatingMenu>
     ) : null;
 

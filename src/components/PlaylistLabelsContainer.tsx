@@ -7,13 +7,12 @@ import {
   type FloatingMenuPosition,
 } from "./FloatingMenu";
 import { PlaylistLabel } from "./PlaylistLabel";
+import {
+  getRemoveActionLabel,
+  getShowAllToggleLabel,
+  MenuActionItem,
+} from "./PlaylistMenuItems";
 import { useDismissibleLayer } from "../hooks/useDismissibleLayer";
-
-function getRemoveActionLabel(playlistData: PlaylistData): string {
-  return playlistData.isLikedTracks
-    ? "Unlike track"
-    : `Remove from ${playlistData.name}`;
-}
 
 /**
  * Props for the PlaylistLabelsContainer component.
@@ -25,27 +24,39 @@ interface PlaylistLabelsContainerProps {
   trackUri: string;
   // The maximum number of labels to display.
   maxLabelCount: number;
+  // Whether all saved playlists are currently shown.
+  showAllPlaylists: boolean;
   // Callback for when a track is removed from a saved source.
   onRemoveTrack: (playlistData: PlaylistData, trackUri: string) => void;
   // Callback for when a user navigates to a playlist.
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
+  // Callback for toggling the playlist visibility filter.
+  onToggleShowAllPlaylists: () => void;
 }
 
 interface PlaylistOverflowButtonProps {
   hiddenPlaylistData: PlaylistData[];
   trackUri: string;
+  showAllPlaylists: boolean;
   onRemoveTrack: (playlistData: PlaylistData, trackUri: string) => void;
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
+  onToggleShowAllPlaylists: () => void;
 }
 
 const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
   hiddenPlaylistData,
   trackUri,
+  showAllPlaylists,
   onRemoveTrack,
   onNavigateToPlaylist,
+  onToggleShowAllPlaylists,
 }) => {
   const hiddenCount = hiddenPlaylistData.length;
-  const tooltipLabel = `Show ${hiddenCount} more playlist${hiddenCount === 1 ? "" : "s"}`;
+  const toggleLabel = getShowAllToggleLabel(showAllPlaylists);
+  const tooltipLabel =
+    hiddenCount > 0
+      ? `Show ${hiddenCount} more playlist${hiddenCount === 1 ? "" : "s"}`
+      : "Playlist Labels Menu";
   const buttonRef = React.useRef<HTMLButtonElement | null>(null);
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -97,6 +108,12 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
       onRemoveTrack(playlistData, trackUri);
     };
 
+  const handleToggleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsOpen(false);
+    onToggleShowAllPlaylists();
+  };
+
   const menu =
     isOpen && menuPosition ? (
       <FloatingMenu menuRef={menuRef} position={menuPosition}>
@@ -147,6 +164,11 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
             </div>
           </li>
         ))}
+        <MenuActionItem
+          iconName="playlist"
+          label={toggleLabel}
+          onClick={handleToggleClick}
+        />
       </FloatingMenu>
     ) : null;
 
@@ -182,16 +204,20 @@ export const PlaylistLabelsContainer: React.FC<
   playlistData,
   trackUri,
   maxLabelCount,
+  showAllPlaylists,
   onRemoveTrack,
   onNavigateToPlaylist,
+  onToggleShowAllPlaylists,
 }) => {
   // Determines if there are more labels than the max count.
   const hasOverflow = playlistData.length > maxLabelCount;
+  const canRenderOverflowButton = maxLabelCount > 1;
   const visibleLabelCount = hasOverflow
-    ? Math.max(maxLabelCount - 1, 0)
-    : maxLabelCount;
+    ? Math.max(maxLabelCount - (canRenderOverflowButton ? 1 : 0), 1)
+    : Math.max(maxLabelCount, 1);
   const displayedData = playlistData.slice(0, visibleLabelCount);
   const hiddenData = playlistData.slice(visibleLabelCount);
+  const shouldShowOverflowButton = hasOverflow && canRenderOverflowButton;
 
   return (
     <div className={CSS_CLASSES.LABELS_CONTAINER}>
@@ -200,16 +226,20 @@ export const PlaylistLabelsContainer: React.FC<
           key={data.uri || "liked-tracks"}
           playlistData={data}
           trackUri={trackUri}
+          showAllPlaylists={showAllPlaylists}
           onRemoveTrack={onRemoveTrack}
           onNavigateToPlaylist={onNavigateToPlaylist}
+          onToggleShowAllPlaylists={onToggleShowAllPlaylists}
         />
       ))}
-      {hasOverflow && (
+      {shouldShowOverflowButton && (
         <PlaylistOverflowButton
           hiddenPlaylistData={hiddenData}
           trackUri={trackUri}
+          showAllPlaylists={showAllPlaylists}
           onRemoveTrack={onRemoveTrack}
           onNavigateToPlaylist={onNavigateToPlaylist}
+          onToggleShowAllPlaylists={onToggleShowAllPlaylists}
         />
       )}
     </div>
