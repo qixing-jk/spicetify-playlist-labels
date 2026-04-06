@@ -46,6 +46,8 @@ export const CONFIG = {
 export const CSS_CLASSES = {
   LABEL_CONTAINER: "spicetify-playlist-labels",
   LABELS_CONTAINER: "spicetify-playlist-labels-labels-container",
-  OVERFLOW: "spicetify-playlist-labels-overflow",
   TRACK_CONTAINER: "spicetify-playlist-labels-label-container",
+  OVERFLOW_BUTTON: "spicetify-playlist-labels-overflow-button",
+  OVERFLOW_MENU_SHELL: "spicetify-playlist-labels-overflow-menu-shell",
+  OVERFLOW_MENU: "spicetify-playlist-labels-overflow-menu",
 } as const;
