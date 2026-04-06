@@ -23,6 +23,7 @@ interface PlaylistLabelsContainerProps {
 interface PlaylistOverflowButtonProps {
   hiddenPlaylistData: PlaylistData[];
   trackUri: string;
+  onRemoveTrack: (playlistUri: string, trackUri: string) => void;
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
 }
 
@@ -35,6 +36,7 @@ interface OverflowMenuPosition {
 const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
   hiddenPlaylistData,
   trackUri,
+  onRemoveTrack,
   onNavigateToPlaylist,
 }) => {
   const hiddenCount = hiddenPlaylistData.length;
@@ -111,6 +113,17 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
       onNavigateToPlaylist(playlistData, trackUri);
     };
 
+  const handleRemoveClick =
+    (playlistData: PlaylistData) =>
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (!playlistData.uri) {
+        return;
+      }
+      event.stopPropagation();
+      setIsOpen(false);
+      onRemoveTrack(playlistData.uri, trackUri);
+    };
+
   const menu =
     isOpen && menuPosition
       ? ReactDOM.createPortal(
@@ -139,29 +152,44 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
                   role="presentation"
                   className="main-contextMenu-menuItem"
                 >
-                  <button
-                    type="button"
-                    className="main-contextMenu-menuItemButton"
-                    onClick={handlePlaylistClick(data)}
-                    title={data.name}
-                    role="menuitem"
-                    tabIndex={-1}
-                  >
-                    {data.image && (
-                      <img
-                        className={CSS_CLASSES.OVERFLOW_MENU_ITEM_MEDIA}
-                        src={data.image}
-                        alt={data.name}
-                        aria-hidden="true"
+                  <div className={CSS_CLASSES.OVERFLOW_MENU_ITEM_CONTENT}>
+                    <button
+                      type="button"
+                      className="main-contextMenu-menuItemButton"
+                      onClick={handlePlaylistClick(data)}
+                      title={data.name}
+                      role="menuitem"
+                      tabIndex={-1}
+                    >
+                      {data.image && (
+                        <img
+                          className={CSS_CLASSES.OVERFLOW_MENU_ITEM_MEDIA}
+                          src={data.image}
+                          alt={data.name}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span
+                        className={`${CSS_CLASSES.OVERFLOW_MENU_ITEM_LABEL} e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel`}
+                        dir="auto"
+                      >
+                        {data.name}
+                      </span>
+                    </button>
+                    {!data.isLikedTracks && data.uri && (
+                      <button
+                        type="button"
+                        className={CSS_CLASSES.OVERFLOW_MENU_ITEM_REMOVE_BUTTON}
+                        onClick={handleRemoveClick(data)}
+                        aria-label={`Remove from ${data.name}`}
+                        title={`Remove from ${data.name}`}
+                        tabIndex={-1}
+                        dangerouslySetInnerHTML={{
+                          __html: `<svg data-encore-id="icon" role="img" viewBox="0 0 16 16">${Spicetify.SVGIcons.x}</svg>`,
+                        }}
                       />
                     )}
-                    <span
-                      className="e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel"
-                      dir="auto"
-                    >
-                      {data.name}
-                    </span>
-                  </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -228,6 +256,7 @@ export const PlaylistLabelsContainer: React.FC<
         <PlaylistOverflowButton
           hiddenPlaylistData={hiddenData}
           trackUri={trackUri}
+          onRemoveTrack={onRemoveTrack}
           onNavigateToPlaylist={onNavigateToPlaylist}
         />
       )}

@@ -51,6 +51,11 @@ export const CSS_CLASSES = {
   OVERFLOW_BUTTON: "spicetify-playlist-labels-overflow-button",
   OVERFLOW_MENU_SHELL: "spicetify-playlist-labels-overflow-menu-shell",
   OVERFLOW_MENU: "spicetify-playlist-labels-overflow-menu",
+  OVERFLOW_MENU_ITEM_CONTENT: "spicetify-playlist-labels-overflow-menu-item",
+  OVERFLOW_MENU_ITEM_LABEL:
+    "spicetify-playlist-labels-overflow-menu-item-label",
   OVERFLOW_MENU_ITEM_MEDIA:
     "spicetify-playlist-labels-overflow-menu-item-media",
+  OVERFLOW_MENU_ITEM_REMOVE_BUTTON:
+    "spicetify-playlist-labels-overflow-menu-item-remove-button",
 } as const;
