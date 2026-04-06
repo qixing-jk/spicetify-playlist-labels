@@ -89,6 +89,23 @@
   padding: 0;
 }
 
+.spicetify-playlist-labels-context-menu-icon {
+  align-items: center;
+  color: var(--text-subdued);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 16px;
+  justify-content: center;
+  width: 16px;
+}
+
+.spicetify-playlist-labels-context-menu-icon svg {
+  display: block;
+  fill: currentColor;
+  height: 16px;
+  width: 16px;
+}
+
 .spicetify-playlist-labels-overflow-menu-item-media {
   border-radius: 2px;
   flex: 0 0 auto;
