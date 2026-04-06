@@ -34,10 +34,9 @@
   height: var(--row-height); /* Inherits row height for vertical alignment. */
   align-items: center;
   display: flex;
-  flex-direction: row-reverse; /* Displays labels from right to left. */
   overflow: hidden;
   gap: var(--spicetify-playlist-labels-gap);
-  justify-content: flex-start;
+  justify-content: flex-end;
   max-width: var(--spicetify-playlist-labels-container-max-width);
 }
 
