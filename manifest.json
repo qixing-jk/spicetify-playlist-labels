@@ -1,6 +1,6 @@
 {
   "name": "Playlist Labels",
-  "description": "Adds interactive playlist labels to your tracklist",
+  "description": "Shows which playlists each track appears in directly in Spotify tracklists, with labels for quick jump and removal",
   "preview": "preview.png",
   "main": "dist/spicetify-playlist-labels.js",
   "readme": "README.md",

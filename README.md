@@ -2,7 +2,13 @@
 
 [简体中文](README_zh-CN.md) | [English](README.md)
 
-Adds playlist labels to your tracklist indicating the playlists in which a track is included. Clicking a label jumps to the playlist.
+See which playlists each track appears in directly in Spotify tracklists, and use labels to quickly jump or remove tracks.
+
+## Features
+
+- View playlist and "Liked Songs" labels in the tracklist.
+- Jump to a playlist from its label.
+- Remove tracks or unlike songs from label menus.
 
 ![Screenshot](screenshot.png)
 
