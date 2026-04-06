@@ -6,7 +6,7 @@ import { PlaylistData } from "./types";
 import { appState } from "./state/AppState";
 import { layoutManager } from "./services/LayoutManager";
 import { PlaylistLabelsContainer } from "./components/PlaylistLabelsContainer";
-import { removeTrackFromPlaylist } from "./api";
+import { removeTrackFromSource } from "./api";
 import {
   getTrackUriToPlaylistData,
   updateLikedTracks,
@@ -187,14 +187,20 @@ class TracklistRenderer {
   /**
    * Handles removing a track.
    */
-  private handleRemoveTrack = (playlistUri: string, trackUri: string): void => {
-    removeTrackFromPlaylist(playlistUri, trackUri);
+  private handleRemoveTrack = (
+    playlistData: PlaylistData,
+    trackUri: string,
+  ): void => {
+    void removeTrackFromSource(playlistData, trackUri);
 
     // Optimistically update UI
     const state = appState.getState();
     if (state.trackUriToPlaylistData[trackUri]) {
       const updatedData = state.trackUriToPlaylistData[trackUri].filter(
-        (data) => data.uri !== playlistUri,
+        (data) =>
+          playlistData.isLikedTracks
+            ? !data.isLikedTracks
+            : data.uri !== playlistData.uri,
       );
       const newTrackData = { ...state.trackUriToPlaylistData };
       newTrackData[trackUri] = updatedData;

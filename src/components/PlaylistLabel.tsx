@@ -12,10 +12,16 @@ const VIEWPORT_PADDING = 8;
 const CONTEXT_MENU_MIN_WIDTH = 220;
 const CONTEXT_MENU_ITEM_HEIGHT = 44;
 
+function getRemoveActionLabel(playlistData: PlaylistData): string {
+  return playlistData.isLikedTracks
+    ? "Unlike track"
+    : `Remove from ${playlistData.name}`;
+}
+
 interface PlaylistLabelProps {
   playlistData: PlaylistData;
   trackUri: string;
-  onRemoveTrack: (playlistUri: string, trackUri: string) => void;
+  onRemoveTrack: (playlistData: PlaylistData, trackUri: string) => void;
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
 }
 
@@ -44,7 +50,7 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   const handleRemoveClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     closeContextMenu();
-    onRemoveTrack(playlistData.uri!, trackUri);
+    onRemoveTrack(playlistData, trackUri);
   };
 
   const handleLabelClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -54,10 +60,6 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   };
 
   const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (playlistData.isLikedTracks) {
-      return;
-    }
-
     event.preventDefault();
     event.stopPropagation();
 
@@ -84,7 +86,7 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   };
 
   const contextMenu =
-    !playlistData.isLikedTracks && isContextMenuOpen && menuPosition ? (
+    isContextMenuOpen && menuPosition ? (
       <FloatingMenu menuRef={menuRef} position={menuPosition}>
         <li role="presentation" className="main-contextMenu-menuItem">
           <button
@@ -94,12 +96,15 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
             role="menuitem"
             tabIndex={-1}
           >
-            <RemoveIcon className={CSS_CLASSES.CONTEXT_MENU_ICON} />
+            <RemoveIcon
+              className={CSS_CLASSES.CONTEXT_MENU_ICON}
+              iconName={playlistData.isLikedTracks ? "heart-active" : "x"}
+            />
             <span
               className="e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel"
               dir="auto"
             >
-              Remove from {playlistData.name}
+              {getRemoveActionLabel(playlistData)}
             </span>
           </button>
         </li>

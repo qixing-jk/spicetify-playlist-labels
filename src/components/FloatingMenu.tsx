@@ -58,11 +58,15 @@ FloatingMenu.displayName = "FloatingMenu";
 
 interface RemoveIconProps {
   className?: string;
+  iconName?: string;
 }
 
-export const RemoveIcon: React.FC<RemoveIconProps> = ({ className }) => {
+export const RemoveIcon: React.FC<RemoveIconProps> = ({
+  className,
+  iconName = "x",
+}) => {
   const removeIconPath =
-    (Spicetify.SVGIcons as Record<string, string>).trash ??
+    (Spicetify.SVGIcons as Record<string, string>)[iconName] ??
     Spicetify.SVGIcons.x;
 
   return (

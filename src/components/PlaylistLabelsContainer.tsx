@@ -9,6 +9,12 @@ import {
 import { PlaylistLabel } from "./PlaylistLabel";
 import { useDismissibleLayer } from "../hooks/useDismissibleLayer";
 
+function getRemoveActionLabel(playlistData: PlaylistData): string {
+  return playlistData.isLikedTracks
+    ? "Unlike track"
+    : `Remove from ${playlistData.name}`;
+}
+
 /**
  * Props for the PlaylistLabelsContainer component.
  */
@@ -19,8 +25,8 @@ interface PlaylistLabelsContainerProps {
   trackUri: string;
   // The maximum number of labels to display.
   maxLabelCount: number;
-  // Callback for when a track is removed from a playlist.
-  onRemoveTrack: (playlistUri: string, trackUri: string) => void;
+  // Callback for when a track is removed from a saved source.
+  onRemoveTrack: (playlistData: PlaylistData, trackUri: string) => void;
   // Callback for when a user navigates to a playlist.
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
 }
@@ -28,7 +34,7 @@ interface PlaylistLabelsContainerProps {
 interface PlaylistOverflowButtonProps {
   hiddenPlaylistData: PlaylistData[];
   trackUri: string;
-  onRemoveTrack: (playlistUri: string, trackUri: string) => void;
+  onRemoveTrack: (playlistData: PlaylistData, trackUri: string) => void;
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
 }
 
@@ -86,12 +92,9 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
   const handleRemoveClick =
     (playlistData: PlaylistData) =>
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (!playlistData.uri) {
-        return;
-      }
       event.stopPropagation();
       setIsOpen(false);
-      onRemoveTrack(playlistData.uri, trackUri);
+      onRemoveTrack(playlistData, trackUri);
     };
 
   const menu =
@@ -127,16 +130,18 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
                   {data.name}
                 </span>
               </button>
-              {!data.isLikedTracks && data.uri && (
+              {(data.isLikedTracks || data.uri) && (
                 <button
                   type="button"
                   className={CSS_CLASSES.OVERFLOW_MENU_ITEM_REMOVE_BUTTON}
                   onClick={handleRemoveClick(data)}
-                  aria-label={`Remove from ${data.name}`}
-                  title={`Remove from ${data.name}`}
+                  aria-label={getRemoveActionLabel(data)}
+                  title={getRemoveActionLabel(data)}
                   tabIndex={-1}
                 >
-                  <RemoveIcon />
+                  <RemoveIcon
+                    iconName={data.isLikedTracks ? "heart-active" : "x"}
+                  />
                 </button>
               )}
             </div>

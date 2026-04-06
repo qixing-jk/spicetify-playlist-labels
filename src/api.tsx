@@ -1,4 +1,5 @@
 import { cacheService } from "./services/CacheService";
+import { PlaylistData } from "./types";
 /**
  * Fetches the contents of the user's rootlist, including playlists and folders.
  * @returns {Promise<any>} A promise that resolves with the rootlist contents.
@@ -53,6 +54,37 @@ export async function removeTrackFromPlaylist(
   await Spicetify.Platform.PlaylistAPI.remove(playlistUri, [
     { uri: trackUri, uid: "" },
   ]);
+}
+
+/**
+ * Removes a track from liked songs.
+ * @param {string} trackUri - The Spotify URI of the track to unlike.
+ * @returns {Promise<void>}
+ */
+export async function unlikeTrack(trackUri: string) {
+  await Spicetify.Platform.LibraryAPI.remove({ uris: [trackUri] });
+}
+
+/**
+ * Removes a track from a saved source.
+ * @param {PlaylistData} playlistData - The saved source containing the track.
+ * @param {string} trackUri - The Spotify URI of the track to remove.
+ * @returns {Promise<void>}
+ */
+export async function removeTrackFromSource(
+  playlistData: PlaylistData,
+  trackUri: string,
+) {
+  if (playlistData.isLikedTracks) {
+    await unlikeTrack(trackUri);
+    return;
+  }
+
+  if (!playlistData.uri) {
+    return;
+  }
+
+  await removeTrackFromPlaylist(playlistData.uri, trackUri);
 }
 
 /**
