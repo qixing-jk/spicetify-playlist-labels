@@ -8,6 +8,15 @@ export interface PlaylistData {
   image: string;
 }
 
+export interface PlaylistItem {
+  uri: string;
+  uid: string;
+}
+
+export interface PlaylistItemsByUri {
+  [uri: string]: PlaylistItem[];
+}
+
 // App state interface
 export interface AppState {
   oldMainElement: HTMLElement | null;
@@ -28,7 +37,7 @@ export interface AppState {
 // Cache-related types
 export interface CachedPlaylistItem {
   uri: string;
-  items: any[];
+  items: PlaylistItem[];
 }
 
 export interface PlaylistExtra {
@@ -41,13 +50,37 @@ export interface PlaylistExtra {
   isRatedPlaylist?: boolean;
 }
 
+export interface RootlistItem {
+  type: string;
+  uri?: string;
+  name?: string;
+  items?: RootlistItem[];
+  totalLength?: number;
+  addedAt?: string;
+  images?: Array<{ url: string }>;
+  isOwnedBySelf?: boolean;
+}
+
+export interface PlaylistMetadata {
+  uri: string;
+  images?: Array<{ url: string }>;
+}
+
+export interface LikedTracksResponse {
+  items: PlaylistItem[];
+  totalLength: number;
+}
+
 // Database operations interface
 export interface DatabaseOperations {
   getDb(): Promise<IDBDatabase>;
-  getCachedPlaylists(db: IDBDatabase): Promise<any[]>;
-  getCachedPlaylistItems(db: IDBDatabase): Promise<any[]>;
-  cachePlaylists(db: IDBDatabase, playlists: any[]): Promise<void>;
-  cachePlaylistItems(db: IDBDatabase, uriToPlaylistItems: any): Promise<void>;
+  getCachedPlaylists(db: IDBDatabase): Promise<PlaylistExtra[]>;
+  getCachedPlaylistItems(db: IDBDatabase): Promise<CachedPlaylistItem[]>;
+  cachePlaylists(db: IDBDatabase, playlists: PlaylistExtra[]): Promise<void>;
+  cachePlaylistItems(
+    db: IDBDatabase,
+    uriToPlaylistItems: PlaylistItemsByUri,
+  ): Promise<void>;
   clearCachedPlaylists(db: IDBDatabase): Promise<void>;
   clearCachedPlaylistItems(db: IDBDatabase): Promise<void>;
 }

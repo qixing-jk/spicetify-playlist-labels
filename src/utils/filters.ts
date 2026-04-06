@@ -1,4 +1,9 @@
-import { PlaylistData } from "../types";
+import {
+  CachedPlaylistItem,
+  PlaylistData,
+  PlaylistExtra,
+  PlaylistItemsByUri,
+} from "../types";
 import { isCurrentPlaylistPage } from "./dom";
 
 /**
@@ -26,7 +31,9 @@ export function filterPlaylistData(
 /**
  * Sorts playlists by date.
  */
-export function sortPlaylistsByDate(playlists: any[]): any[] {
+export function sortPlaylistsByDate(
+  playlists: PlaylistExtra[],
+): PlaylistExtra[] {
   return playlists.sort(
     (a, b) => new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime(),
   );
@@ -35,7 +42,9 @@ export function sortPlaylistsByDate(playlists: any[]): any[] {
 /**
  * Separates rated and non-rated playlists.
  */
-export function separateRatedPlaylists(playlists: any[]): [any[], any[]] {
+export function separateRatedPlaylists(
+  playlists: PlaylistExtra[],
+): [PlaylistExtra[], PlaylistExtra[]] {
   const ratedPlaylists = playlists.filter(
     (playlist) => playlist.isRatedPlaylist,
   );
@@ -49,8 +58,8 @@ export function separateRatedPlaylists(playlists: any[]): [any[], any[]] {
  * Checks if a playlist has been updated.
  */
 export function hasPlaylistUpdated(
-  playlist: any,
-  cachedPlaylist: any,
+  playlist: PlaylistExtra,
+  cachedPlaylist?: PlaylistExtra,
 ): boolean {
   return !cachedPlaylist || cachedPlaylist.totalLength !== playlist.totalLength;
 }
@@ -59,9 +68,9 @@ export function hasPlaylistUpdated(
  * Builds a map from URI to playlist items.
  */
 export function buildUriToPlaylistItems(
-  cachedPlaylistItems: any[],
-): Record<string, any[]> {
-  const uriToItems: Record<string, any[]> = {};
+  cachedPlaylistItems: CachedPlaylistItem[],
+): PlaylistItemsByUri {
+  const uriToItems: PlaylistItemsByUri = {};
   cachedPlaylistItems.forEach((playlistItems) => {
     uriToItems[playlistItems.uri] = playlistItems.items;
   });

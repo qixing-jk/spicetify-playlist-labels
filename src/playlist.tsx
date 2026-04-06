@@ -7,12 +7,18 @@ import {
 } from "./api";
 import { CONFIG } from "./constants";
 import { cacheService } from "./services/CacheService";
-import { PlaylistExtra, PlaylistData } from "./types";
 import {
-  sortPlaylistsByDate,
-  separateRatedPlaylists,
-  hasPlaylistUpdated,
+  PlaylistData,
+  PlaylistExtra,
+  PlaylistItem,
+  PlaylistItemsByUri,
+  RootlistItem,
+} from "./types";
+import {
   buildUriToPlaylistItems,
+  hasPlaylistUpdated,
+  separateRatedPlaylists,
+  sortPlaylistsByDate,
 } from "./utils/filters";
 
 /**
@@ -22,22 +28,23 @@ class PlaylistDataManager {
   /**
    * Extracts playlists from the rootlist contents.
    */
-  private getPlaylistsFromContents(contents: any): [any[], any[]] {
-    const playlists: any[] = [];
-    const ratedPlaylists: any[] = [];
+  private getPlaylistsFromContents(
+    contents: RootlistItem,
+  ): [PlaylistExtra[], PlaylistExtra[]] {
+    const playlists: PlaylistExtra[] = [];
+    const ratedPlaylists: PlaylistExtra[] = [];
 
-    const traverse = (item: any, isRated: boolean): void => {
+    const traverse = (item: RootlistItem, isRated: boolean): void => {
       if (item.type === "playlist") {
+        const playlist = item as PlaylistExtra;
         if (isRated) {
-          ratedPlaylists.push(item);
+          ratedPlaylists.push(playlist);
         } else {
-          playlists.push(item);
+          playlists.push(playlist);
         }
       } else if (item.type === "folder" && item.items) {
         // Recursively traverse folders, marking playlists inside "Rated" folders
-        item.items.forEach((child: any) =>
-          traverse(child, item.name === "Rated"),
-        );
+        item.items.forEach((child) => traverse(child, item.name === "Rated"));
       }
     };
 
@@ -67,7 +74,7 @@ class PlaylistDataManager {
   private async addPlaylists(
     trackUriToPlaylistData: Record<string, PlaylistData[]>,
     playlists: PlaylistExtra[],
-    uriToPlaylistItems: Record<string, any[]>,
+    uriToPlaylistItems: PlaylistItemsByUri,
   ): Promise<void> {
     for (const playlist of playlists) {
       const playlistItems = uriToPlaylistItems[playlist.uri] ?? [];
@@ -120,7 +127,7 @@ class PlaylistDataManager {
    */
   private addLikedTracks(
     trackUriToPlaylistData: Record<string, PlaylistData[]>,
-    likedTracks: any[],
+    likedTracks: PlaylistItem[],
   ): void {
     likedTracks.forEach((item) => {
       const trackUri = item.uri;
@@ -152,8 +159,8 @@ class PlaylistDataManager {
    */
   private async buildTrackUriToPlaylistData(
     playlists: PlaylistExtra[],
-    uriToPlaylistItems: Record<string, any[]>,
-    likedTracks?: any[],
+    uriToPlaylistItems: PlaylistItemsByUri,
+    likedTracks?: PlaylistItem[],
   ): Promise<Record<string, PlaylistData[]>> {
     const trackUriToPlaylistData: Record<string, PlaylistData[]> = {};
 
@@ -272,7 +279,7 @@ class PlaylistDataManager {
     const updatedPlaylistItems = await Promise.all(updatedPlaylistPromises);
 
     // Merge updated and cached data
-    const uriToPlaylistItems: Record<string, any[]> = { ...cachedUriToItems };
+    const uriToPlaylistItems: PlaylistItemsByUri = { ...cachedUriToItems };
     updatedPlaylists.forEach((playlist, index) => {
       const items = updatedPlaylistItems[index];
       // Only update if fetch was successful

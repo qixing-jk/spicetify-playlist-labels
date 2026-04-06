@@ -1,5 +1,11 @@
 import { CONFIG } from "../constants";
-import { CachedPlaylistItem, DatabaseOperations } from "../types";
+import {
+  CachedPlaylistItem,
+  DatabaseOperations,
+  PlaylistExtra,
+  PlaylistItemsByUri,
+  PlaylistMetadata,
+} from "../types";
 
 /**
  * Cache service class for managing IndexedDB operations.
@@ -46,7 +52,7 @@ export class CacheService implements DatabaseOperations {
   /**
    * Gets cached playlists.
    */
-  async getCachedPlaylists(db: IDBDatabase): Promise<any[]> {
+  async getCachedPlaylists(db: IDBDatabase): Promise<PlaylistExtra[]> {
     return this.performTransaction(db, "playlists", "readonly", (store) =>
       store.getAll(),
     );
@@ -64,7 +70,10 @@ export class CacheService implements DatabaseOperations {
   /**
    * Caches playlists.
    */
-  async cachePlaylists(db: IDBDatabase, playlists: any[]): Promise<void> {
+  async cachePlaylists(
+    db: IDBDatabase,
+    playlists: PlaylistExtra[],
+  ): Promise<void> {
     return this.performTransaction(db, "playlists", "readwrite", (store) => {
       playlists.forEach((playlist) => store.put(playlist));
     });
@@ -75,7 +84,7 @@ export class CacheService implements DatabaseOperations {
    */
   async cachePlaylistItems(
     db: IDBDatabase,
-    uriToPlaylistItems: any,
+    uriToPlaylistItems: PlaylistItemsByUri,
   ): Promise<void> {
     return this.performTransaction(
       db,
@@ -107,7 +116,10 @@ export class CacheService implements DatabaseOperations {
     );
   }
 
-  async getCachedPlaylistMetadata(db: IDBDatabase, uri: string): Promise<any> {
+  async getCachedPlaylistMetadata(
+    db: IDBDatabase,
+    uri: string,
+  ): Promise<PlaylistMetadata | undefined> {
     return this.performTransaction(
       db,
       "playlistMetadata",
@@ -116,7 +128,10 @@ export class CacheService implements DatabaseOperations {
     );
   }
 
-  async cachePlaylistMetadata(db: IDBDatabase, metadata: any): Promise<void> {
+  async cachePlaylistMetadata(
+    db: IDBDatabase,
+    metadata: PlaylistMetadata,
+  ): Promise<void> {
     return this.performTransaction(
       db,
       "playlistMetadata",

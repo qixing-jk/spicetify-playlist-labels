@@ -1,10 +1,16 @@
 import { cacheService } from "./services/CacheService";
-import { PlaylistData } from "./types";
+import {
+  LikedTracksResponse,
+  PlaylistData,
+  PlaylistItem,
+  PlaylistMetadata,
+  RootlistItem,
+} from "./types";
 /**
  * Fetches the contents of the user's rootlist, including playlists and folders.
- * @returns {Promise<any>} A promise that resolves with the rootlist contents.
+ * @returns {Promise<RootlistItem>} A promise that resolves with the rootlist contents.
  */
-export async function getContents() {
+export async function getContents(): Promise<RootlistItem> {
   return await Spicetify.Platform.RootlistAPI.getContents({
     decorateImagesAndOwner: true,
   });
@@ -14,21 +20,23 @@ export async function getContents() {
  * Fetches the total number of liked tracks for the current user.
  * @returns {Promise<number>} A promise that resolves with the count of liked tracks.
  */
-export async function getLikedTracksCount() {
+export async function getLikedTracksCount(): Promise<number> {
   return (await Spicetify.Platform.LibraryAPI.getTracks()).totalLength;
 }
 
 /**
  * Fetches the items (tracks) within a specific playlist.
  * @param {string} uri - The Spotify URI of the playlist.
- * @returns {Promise<any[]>} A promise that resolves with an array of playlist items.
+ * @returns {Promise<PlaylistItem[]>} A promise that resolves with an array of playlist items.
  */
-export async function getPlaylistItems(uri: string) {
+export async function getPlaylistItems(uri: string): Promise<PlaylistItem[]> {
   const result = await Spicetify.Platform.PlaylistAPI.getContents(uri);
   return result.items;
 }
 
-export async function getPlaylistMetadata(uri: string) {
+export async function getPlaylistMetadata(
+  uri: string,
+): Promise<PlaylistMetadata> {
   const db = await cacheService.getDb();
   const cachedMetadata = await cacheService.getCachedPlaylistMetadata(db, uri);
 
@@ -90,9 +98,9 @@ export async function removeTrackFromSource(
 /**
  * Fetches all liked tracks for the current user.
  * It retrieves the full list by using the maximum safe integer as the limit.
- * @returns {Promise<any>} A promise that resolves with the liked tracks object.
+ * @returns {Promise<LikedTracksResponse>} A promise that resolves with the liked tracks object.
  */
-export async function getLikedTracks() {
+export async function getLikedTracks(): Promise<LikedTracksResponse> {
   return await Spicetify.Platform.LibraryAPI.getTracks({
     limit: Number.MAX_SAFE_INTEGER,
   });

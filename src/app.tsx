@@ -281,7 +281,9 @@ async function main(): Promise<void> {
   appState.setShowAllPlaylists(showAllPlaylists);
 
   // Helper function for data updates
-  const updateDataAndTracklist = (promise: Promise<any>) => {
+  const updateDataAndTracklist = (
+    promise: Promise<Record<string, PlaylistData[]>>,
+  ) => {
     promise.then((data) => {
       appState.setTrackUriToPlaylistData(data);
       appState.markPlaylistUpdated();
@@ -307,7 +309,7 @@ async function main(): Promise<void> {
  * Sets up event listeners.
  */
 async function setupEventListeners(
-  updateCallback: (promise: Promise<any>) => void,
+  updateCallback: (promise: Promise<Record<string, PlaylistData[]>>) => void,
 ): Promise<void> {
   // Library update listener
   await Spicetify.Platform.LibraryAPI.getEvents().addListener("update", () => {
