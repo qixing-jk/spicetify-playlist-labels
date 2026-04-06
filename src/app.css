@@ -90,6 +90,14 @@
   padding: 0;
 }
 
+.spicetify-playlist-labels-overflow-menu-item-media {
+  border-radius: 2px;
+  flex: 0 0 auto;
+  height: 20px;
+  object-fit: cover;
+  width: 20px;
+}
+
 /*
  * The following rules override Spotify's default tracklist grid layout
  * to make space for the new labels column. This is done by modifying the

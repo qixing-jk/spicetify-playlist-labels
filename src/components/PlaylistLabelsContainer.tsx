@@ -147,6 +147,14 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
                     role="menuitem"
                     tabIndex={-1}
                   >
+                    {data.image && (
+                      <img
+                        className={CSS_CLASSES.OVERFLOW_MENU_ITEM_MEDIA}
+                        src={data.image}
+                        alt={data.name}
+                        aria-hidden="true"
+                      />
+                    )}
                     <span
                       className="e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel"
                       dir="auto"
