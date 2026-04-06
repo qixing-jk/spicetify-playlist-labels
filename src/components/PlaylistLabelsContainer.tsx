@@ -1,8 +1,13 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { PlaylistData } from "../types";
 import { CSS_CLASSES } from "../constants";
+import {
+  FloatingMenu,
+  RemoveIcon,
+  type FloatingMenuPosition,
+} from "./FloatingMenu";
 import { PlaylistLabel } from "./PlaylistLabel";
+import { useDismissibleLayer } from "../hooks/useDismissibleLayer";
 
 /**
  * Props for the PlaylistLabelsContainer component.
@@ -27,12 +32,6 @@ interface PlaylistOverflowButtonProps {
   onNavigateToPlaylist: (playlistData: PlaylistData, trackUri: string) => void;
 }
 
-interface OverflowMenuPosition {
-  top: number;
-  right: number;
-  maxHeight: number;
-}
-
 const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
   hiddenPlaylistData,
   trackUri,
@@ -45,7 +44,7 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const [menuPosition, setMenuPosition] =
-    React.useState<OverflowMenuPosition | null>(null);
+    React.useState<FloatingMenuPosition | null>(null);
 
   const updateMenuPosition = React.useCallback(() => {
     if (!buttonRef.current) return;
@@ -59,45 +58,16 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
     });
   }, []);
 
-  React.useEffect(() => {
-    if (!isOpen) return;
+  const closeOverflowMenu = React.useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
-    updateMenuPosition();
-
-    const handlePointerDown = (event: MouseEvent) => {
-      const target = event.target as Node | null;
-      if (
-        target &&
-        (buttonRef.current?.contains(target) ||
-          menuRef.current?.contains(target))
-      ) {
-        return;
-      }
-      setIsOpen(false);
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    };
-
-    const handleViewportChange = () => {
-      setIsOpen(false);
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("resize", handleViewportChange);
-    window.addEventListener("scroll", handleViewportChange, true);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("resize", handleViewportChange);
-      window.removeEventListener("scroll", handleViewportChange, true);
-    };
-  }, [isOpen, updateMenuPosition]);
+  useDismissibleLayer({
+    isOpen,
+    refs: [buttonRef, menuRef],
+    onDismiss: closeOverflowMenu,
+    onOpen: updateMenuPosition,
+  });
 
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -125,78 +95,55 @@ const PlaylistOverflowButton: React.FC<PlaylistOverflowButtonProps> = ({
     };
 
   const menu =
-    isOpen && menuPosition
-      ? ReactDOM.createPortal(
-          <div
-            ref={menuRef}
-            className={CSS_CLASSES.OVERFLOW_MENU_SHELL}
-            style={{
-              top: `${menuPosition.top}px`,
-              right: `${menuPosition.right}px`,
-              maxHeight: `${menuPosition.maxHeight}px`,
-            }}
-            onClick={(event) => {
-              event.stopPropagation();
-            }}
+    isOpen && menuPosition ? (
+      <FloatingMenu menuRef={menuRef} position={menuPosition}>
+        {hiddenPlaylistData.map((data, index) => (
+          <li
+            key={`${data.uri ?? "liked-tracks"}-${index}`}
+            role="presentation"
+            className="main-contextMenu-menuItem"
           >
-            <ul
-              tabIndex={0}
-              role="menu"
-              data-depth={0}
-              className={`${CSS_CLASSES.OVERFLOW_MENU} encore-dark-theme encore-layout-themes main-contextMenu-menu`}
-              data-roving-interactive={1}
-            >
-              {hiddenPlaylistData.map((data, index) => (
-                <li
-                  key={`${data.uri ?? "liked-tracks"}-${index}`}
-                  role="presentation"
-                  className="main-contextMenu-menuItem"
+            <div className={CSS_CLASSES.OVERFLOW_MENU_ITEM_CONTENT}>
+              <button
+                type="button"
+                className="main-contextMenu-menuItemButton"
+                onClick={handlePlaylistClick(data)}
+                title={data.name}
+                role="menuitem"
+                tabIndex={-1}
+              >
+                {data.image && (
+                  <img
+                    className={CSS_CLASSES.OVERFLOW_MENU_ITEM_MEDIA}
+                    src={data.image}
+                    alt={data.name}
+                    aria-hidden="true"
+                  />
+                )}
+                <span
+                  className={`${CSS_CLASSES.OVERFLOW_MENU_ITEM_LABEL} e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel`}
+                  dir="auto"
                 >
-                  <div className={CSS_CLASSES.OVERFLOW_MENU_ITEM_CONTENT}>
-                    <button
-                      type="button"
-                      className="main-contextMenu-menuItemButton"
-                      onClick={handlePlaylistClick(data)}
-                      title={data.name}
-                      role="menuitem"
-                      tabIndex={-1}
-                    >
-                      {data.image && (
-                        <img
-                          className={CSS_CLASSES.OVERFLOW_MENU_ITEM_MEDIA}
-                          src={data.image}
-                          alt={data.name}
-                          aria-hidden="true"
-                        />
-                      )}
-                      <span
-                        className={`${CSS_CLASSES.OVERFLOW_MENU_ITEM_LABEL} e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel`}
-                        dir="auto"
-                      >
-                        {data.name}
-                      </span>
-                    </button>
-                    {!data.isLikedTracks && data.uri && (
-                      <button
-                        type="button"
-                        className={CSS_CLASSES.OVERFLOW_MENU_ITEM_REMOVE_BUTTON}
-                        onClick={handleRemoveClick(data)}
-                        aria-label={`Remove from ${data.name}`}
-                        title={`Remove from ${data.name}`}
-                        tabIndex={-1}
-                        dangerouslySetInnerHTML={{
-                          __html: `<svg data-encore-id="icon" role="img" viewBox="0 0 16 16">${Spicetify.SVGIcons.x}</svg>`,
-                        }}
-                      />
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>,
-          document.body,
-        )
-      : null;
+                  {data.name}
+                </span>
+              </button>
+              {!data.isLikedTracks && data.uri && (
+                <button
+                  type="button"
+                  className={CSS_CLASSES.OVERFLOW_MENU_ITEM_REMOVE_BUTTON}
+                  onClick={handleRemoveClick(data)}
+                  aria-label={`Remove from ${data.name}`}
+                  title={`Remove from ${data.name}`}
+                  tabIndex={-1}
+                >
+                  <RemoveIcon />
+                </button>
+              )}
+            </div>
+          </li>
+        ))}
+      </FloatingMenu>
+    ) : null;
 
   return (
     <>

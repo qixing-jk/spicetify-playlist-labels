@@ -1,17 +1,16 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { PlaylistData } from "../types";
 import { CSS_CLASSES } from "../constants";
+import {
+  FloatingMenu,
+  RemoveIcon,
+  type FloatingMenuPosition,
+} from "./FloatingMenu";
+import { useDismissibleLayer } from "../hooks/useDismissibleLayer";
 
 const VIEWPORT_PADDING = 8;
 const CONTEXT_MENU_MIN_WIDTH = 220;
 const CONTEXT_MENU_ITEM_HEIGHT = 44;
-
-interface ContextMenuPosition {
-  top: number;
-  left: number;
-  maxHeight: number;
-}
 
 interface PlaylistLabelProps {
   playlistData: PlaylistData;
@@ -26,57 +25,31 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   onRemoveTrack,
   onNavigateToPlaylist,
 }) => {
-  const removeIconPath =
-    (Spicetify.SVGIcons as Record<string, string>).trash ??
-    Spicetify.SVGIcons.x;
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
   const [menuPosition, setMenuPosition] =
-    React.useState<ContextMenuPosition | null>(null);
+    React.useState<FloatingMenuPosition | null>(null);
 
-  React.useEffect(() => {
-    if (!isContextMenuOpen) return;
+  const closeContextMenu = React.useCallback(() => {
+    setIsContextMenuOpen(false);
+  }, []);
 
-    const closeContextMenu = () => {
-      setIsContextMenuOpen(false);
-    };
-
-    const handlePointerDown = (event: MouseEvent) => {
-      const target = event.target as Node | null;
-      if (target && menuRef.current?.contains(target)) {
-        return;
-      }
-      closeContextMenu();
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeContextMenu();
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("contextmenu", handlePointerDown);
-    window.addEventListener("resize", closeContextMenu);
-    window.addEventListener("scroll", closeContextMenu, true);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("contextmenu", handlePointerDown);
-      window.removeEventListener("resize", closeContextMenu);
-      window.removeEventListener("scroll", closeContextMenu, true);
-    };
-  }, [isContextMenuOpen]);
+  useDismissibleLayer({
+    isOpen: isContextMenuOpen,
+    refs: [menuRef],
+    onDismiss: closeContextMenu,
+    dismissOnContextMenu: true,
+  });
 
   const handleRemoveClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    setIsContextMenuOpen(false);
+    closeContextMenu();
     onRemoveTrack(playlistData.uri!, trackUri);
   };
 
   const handleLabelClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
-    setIsContextMenuOpen(false);
+    closeContextMenu();
     onNavigateToPlaylist(playlistData, trackUri);
   };
 
@@ -111,55 +84,27 @@ export const PlaylistLabel: React.FC<PlaylistLabelProps> = ({
   };
 
   const contextMenu =
-    !playlistData.isLikedTracks && isContextMenuOpen && menuPosition
-      ? ReactDOM.createPortal(
-          <div
-            ref={menuRef}
-            className={CSS_CLASSES.OVERFLOW_MENU_SHELL}
-            style={{
-              top: `${menuPosition.top}px`,
-              left: `${menuPosition.left}px`,
-              maxHeight: `${menuPosition.maxHeight}px`,
-            }}
-            onClick={(event) => {
-              event.stopPropagation();
-            }}
+    !playlistData.isLikedTracks && isContextMenuOpen && menuPosition ? (
+      <FloatingMenu menuRef={menuRef} position={menuPosition}>
+        <li role="presentation" className="main-contextMenu-menuItem">
+          <button
+            type="button"
+            className="main-contextMenu-menuItemButton"
+            onClick={handleRemoveClick}
+            role="menuitem"
+            tabIndex={-1}
           >
-            <ul
-              tabIndex={0}
-              role="menu"
-              data-depth={0}
-              className={`${CSS_CLASSES.OVERFLOW_MENU} encore-dark-theme encore-layout-themes main-contextMenu-menu`}
-              data-roving-interactive={1}
+            <RemoveIcon className={CSS_CLASSES.CONTEXT_MENU_ICON} />
+            <span
+              className="e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel"
+              dir="auto"
             >
-              <li role="presentation" className="main-contextMenu-menuItem">
-                <button
-                  type="button"
-                  className="main-contextMenu-menuItemButton"
-                  onClick={handleRemoveClick}
-                  role="menuitem"
-                  tabIndex={-1}
-                >
-                  <span
-                    className={CSS_CLASSES.CONTEXT_MENU_ICON}
-                    aria-hidden="true"
-                    dangerouslySetInnerHTML={{
-                      __html: `<svg data-encore-id="icon" role="img" viewBox="0 0 16 16">${removeIconPath}</svg>`,
-                    }}
-                  />
-                  <span
-                    className="e-10180-text encore-text-body-small ellipsis-one-line main-contextMenu-menuItemLabel"
-                    dir="auto"
-                  >
-                    Remove from {playlistData.name}
-                  </span>
-                </button>
-              </li>
-            </ul>
-          </div>,
-          document.body,
-        )
-      : null;
+              Remove from {playlistData.name}
+            </span>
+          </button>
+        </li>
+      </FloatingMenu>
+    ) : null;
 
   return (
     <>
