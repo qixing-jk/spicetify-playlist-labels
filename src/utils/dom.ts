@@ -1,4 +1,4 @@
-import { CONFIG } from "../constants";
+import { CONFIG, CSS_CLASSES } from "../constants";
 import { getFiberFromDom, getParentProps } from "../utilties";
 import { PlaylistData } from "../types";
 
@@ -79,6 +79,8 @@ export function getMainViewElement(): Element | null {
 export function createLabelContainer(): HTMLDivElement {
   const container = document.createElement("div");
   container.classList.add("spicetify-playlist-labels");
+  container.classList.add(CSS_CLASSES.LABEL_GRID_CELL);
+  container.setAttribute("role", "gridcell");
   return container;
 }
 
@@ -91,8 +93,20 @@ export function insertLabelContainer(
 ): void {
   const lastColumn = track.querySelector(CONFIG.SELECTORS.LAST_COLUMN);
   if (lastColumn) {
-    lastColumn.insertBefore(labelContainer, lastColumn.firstChild);
+    track.insertBefore(labelContainer, lastColumn);
   }
+}
+
+/**
+ * Creates a placeholder cell for the tracklist header row.
+ */
+export function createLabelHeaderPlaceholder(): HTMLDivElement {
+  const placeholder = document.createElement("div");
+  placeholder.classList.add(CSS_CLASSES.LABEL_HEADER_PLACEHOLDER);
+  placeholder.classList.add(CSS_CLASSES.LABEL_GRID_CELL);
+  placeholder.setAttribute("aria-hidden", "true");
+  placeholder.setAttribute("role", "gridcell");
+  return placeholder;
 }
 
 /**

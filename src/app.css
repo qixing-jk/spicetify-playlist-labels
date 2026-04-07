@@ -8,36 +8,33 @@
   --spicetify-playlist-labels-size: 28px;
   /* The gap between individual playlist labels. */
   --spicetify-playlist-labels-gap: 6px;
-  /* The maximum width the label container can expand to. Calculated based on the max number of labels that can fit. */
-  --spicetify-playlist-labels-container-max-width: calc(
-    (
-        var(--spicetify-playlist-labels-size) +
-          var(--spicetify-playlist-labels-gap)
-      ) *
-      var(--spicetify-playlist-labels-max-label-count, 1) + 16px
-  );
-  /* The current width of the label container. It takes the minimum of the max-width and the width required for the actual number of labels. */
-  --spicetify-playlist-labels-container-width: min(
-    var(--spicetify-playlist-labels-container-max-width),
-    calc(
-      var(--spicetify-playlist-labels-size) *
-        var(--spicetify-playlist-labels-label-count, 1) +
-        var(--spicetify-playlist-labels-gap) *
-        calc(var(--spicetify-playlist-labels-label-count, 1) - 1)
-    )
-  );
+}
+
+.spicetify-playlist-labels {
+  min-width: 0;
+}
+
+.spicetify-playlist-labels-grid-cell {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.spicetify-playlist-labels-header-placeholder {
+  min-width: 0;
 }
 
 /* The main container for all labels in a single track row. */
 .spicetify-playlist-labels-labels-container {
-  width: var(--spicetify-playlist-labels-container-width);
   height: var(--row-height); /* Inherits row height for vertical alignment. */
   align-items: center;
   display: flex;
+  flex: 0 0 auto;
   overflow: hidden;
   gap: var(--spicetify-playlist-labels-gap);
   justify-content: flex-end;
-  max-width: var(--spicetify-playlist-labels-container-max-width);
+  min-width: 0;
 }
 
 /* Container for a single label image. */
@@ -174,51 +171,4 @@
   fill: currentColor;
   height: 16px;
   width: 16px;
-}
-
-/*
- * The following rules override Spotify's default tracklist grid layout
- * to make space for the new labels column. This is done by modifying the
- * `grid-template-columns` for tracklists with different column counts.
- * The `!important` flag is used to ensure these overrides take precedence.
- */
-
-/* For tracklists with 4 columns (e.g., Playlist page). */
-.main-trackList-trackList.main-trackList-indexable[aria-colcount="4"]
-  .main-trackList-trackListRowGrid {
-  grid-template-columns:
-    [index] var(--tracklist-index-column-width, 16px)
-    [first] minmax(120px, var(--col1, 4fr))
-    [var1] minmax(120px, var(--col2, 2fr))
-    /* The last column is resized to accommodate the label container's width. */
-    [last] calc(
-      120px + var(--spicetify-playlist-labels-container-width) + 12px
-    ) !important;
-}
-
-/* For tracklists with 5 columns (e.g., Album page). */
-.main-trackList-trackList.main-trackList-indexable[aria-colcount="5"]
-  .main-trackList-trackListRowGrid {
-  grid-template-columns:
-    [index] var(--tracklist-index-column-width, 16px)
-    [first] minmax(120px, var(--col1, 6fr))
-    [var1] minmax(120px, var(--col2, 4fr))
-    [var2] minmax(120px, var(--col3, 3fr))
-    [last] calc(
-      120px + var(--spicetify-playlist-labels-container-width) + 12px
-    ) !important;
-}
-
-/* For tracklists with 6 columns. */
-.main-trackList-trackList.main-trackList-indexable[aria-colcount="6"]
-  .main-trackList-trackListRowGrid {
-  grid-template-columns:
-    [index] var(--tracklist-index-column-width, 16px)
-    [first] minmax(120px, var(--col1, 6fr))
-    [var1] minmax(120px, var(--col2, 4fr))
-    [var2] minmax(120px, var(--col3, 3fr))
-    [var3] minmax(120px, var(--col4, 2fr))
-    [last] calc(
-      120px + var(--spicetify-playlist-labels-container-width) + 12px
-    ) !important;
 }

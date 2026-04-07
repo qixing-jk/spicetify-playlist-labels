@@ -13,8 +13,6 @@ class AppStateManager {
     showAllPlaylists: false,
     highlightTrack: null,
     highlightTrackPath: null,
-    maxExistingLabelCount: 0,
-    maxLabelCount: 1,
     rowHeight: CONFIG.DEFAULT_ROW_HEIGHT,
     mainView: null,
   };
@@ -68,23 +66,6 @@ class AppStateManager {
     this.state.highlightTrackPath = path;
   }
 
-  // Updates the maximum label count
-  updateMaxLabelCount(count: number): void {
-    this.state.maxLabelCount = count;
-  }
-
-  // Updates the maximum number of existing labels
-  updateMaxExistingLabelCount(count: number): void {
-    if (count > this.state.maxExistingLabelCount) {
-      this.state.maxExistingLabelCount = count;
-    }
-  }
-
-  // Resets the maximum number of existing labels
-  resetMaxExistingLabelCount(): void {
-    this.state.maxExistingLabelCount = 0;
-  }
-
   // Updates the row height
   updateRowHeight(height: string): void {
     this.state.rowHeight = height;
@@ -93,16 +74,6 @@ class AppStateManager {
   // Sets the main view
   setMainView(view: Element | null): void {
     this.state.mainView = view;
-  }
-
-  // Checks if the tracklists have changed
-  hasTracklistsChanged(): boolean {
-    return (
-      this.state.oldTracklists.length !== this.state.tracklists.length ||
-      !this.state.oldTracklists.every(
-        (value, index) => value === this.state.tracklists[index],
-      )
-    );
   }
 
   // Checks if the main element has changed

@@ -3,7 +3,9 @@ export const CONFIG = {
   // UI configuration
   DEFAULT_ROW_HEIGHT: "56px",
   MAX_POSSIBLE_LABEL_COUNT: 20,
-  MIN_VIEW_SIZE: 516,
+  LABEL_GAP: 6,
+  OVERFLOW_BUTTON_HORIZONTAL_PADDING: 16,
+  OVERFLOW_BUTTON_CHARACTER_WIDTH: 8,
 
   // Cache configuration
   DB_NAME: "spicetify-playlist-labels",
@@ -11,8 +13,6 @@ export const CONFIG = {
 
   // CSS variables
   CSS_VARS: {
-    MAX_LABEL_COUNT: "--spicetify-playlist-labels-max-label-count",
-    LABEL_COUNT: "--spicetify-playlist-labels-label-count",
     SIZE: "--spicetify-playlist-labels-size",
   },
 
@@ -45,6 +45,8 @@ export const CONFIG = {
 // CSS class names
 export const CSS_CLASSES = {
   LABEL_CONTAINER: "spicetify-playlist-labels",
+  LABEL_HEADER_PLACEHOLDER: "spicetify-playlist-labels-header-placeholder",
+  LABEL_GRID_CELL: "spicetify-playlist-labels-grid-cell",
   LABELS_CONTAINER: "spicetify-playlist-labels-labels-container",
   TRACK_CONTAINER: "spicetify-playlist-labels-label-container",
   CONTEXT_MENU_ICON: "spicetify-playlist-labels-context-menu-icon",

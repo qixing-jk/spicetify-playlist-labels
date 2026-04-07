@@ -28,8 +28,6 @@ export interface AppState {
   showAllPlaylists: boolean;
   highlightTrack: string | null;
   highlightTrackPath: string | null | undefined;
-  maxExistingLabelCount: number;
-  maxLabelCount: number;
   rowHeight: string;
   mainView: Element | null;
 }

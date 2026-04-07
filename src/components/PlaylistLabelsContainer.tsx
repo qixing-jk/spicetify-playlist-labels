@@ -211,16 +211,27 @@ export const PlaylistLabelsContainer: React.FC<
 }) => {
   // Determines if there are more labels than the max count.
   const hasOverflow = playlistData.length > maxLabelCount;
-  const canRenderOverflowButton = maxLabelCount > 1;
-  const visibleLabelCount = hasOverflow
-    ? Math.max(maxLabelCount - (canRenderOverflowButton ? 1 : 0), 1)
-    : Math.max(maxLabelCount, 1);
+  const shouldRenderOverflowOnly = hasOverflow && maxLabelCount === 1;
+  const canRenderOverflowButton = maxLabelCount > 1 || shouldRenderOverflowOnly;
+  const visibleLabelCount = shouldRenderOverflowOnly
+    ? 0
+    : hasOverflow
+      ? Math.max(maxLabelCount - (canRenderOverflowButton ? 1 : 0), 1)
+      : Math.max(maxLabelCount, 1);
   const displayedData = playlistData.slice(0, visibleLabelCount);
-  const hiddenData = playlistData.slice(visibleLabelCount);
+  const hiddenPlaylistData = shouldRenderOverflowOnly
+    ? playlistData
+    : playlistData.slice(visibleLabelCount);
   const shouldShowOverflowButton = hasOverflow && canRenderOverflowButton;
 
   return (
-    <div className={CSS_CLASSES.LABELS_CONTAINER}>
+    <div
+      className={CSS_CLASSES.LABELS_CONTAINER}
+      style={{
+        width: "100%",
+        maxWidth: "100%",
+      }}
+    >
       {displayedData.map((data) => (
         <PlaylistLabel
           key={data.uri || "liked-tracks"}
@@ -234,7 +245,7 @@ export const PlaylistLabelsContainer: React.FC<
       ))}
       {shouldShowOverflowButton && (
         <PlaylistOverflowButton
-          hiddenPlaylistData={hiddenData}
+          hiddenPlaylistData={hiddenPlaylistData}
           trackUri={trackUri}
           showAllPlaylists={showAllPlaylists}
           onRemoveTrack={onRemoveTrack}

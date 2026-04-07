@@ -19,19 +19,40 @@ import {
   getTrackRowElements,
   getTracklistTrackUri,
   createLabelContainer,
+  createLabelHeaderPlaceholder,
   insertLabelContainer,
   playlistUriToPlaylistId,
 } from "./utils/dom";
 import { filterPlaylistData } from "./utils/filters";
+import type { TracklistLabelLayout } from "./services/LayoutManager";
 
 // Global observers and update promise
 let mainElementObserver: MutationObserver;
 let updatePromise: Promise<void> = Promise.resolve();
 
+interface TrackRowRenderData {
+  track: HTMLElement;
+  trackUri: string;
+  filteredPlaylistData: PlaylistData[];
+}
+
 /**
  * Manages rendering of the tracklist.
  */
 class TracklistRenderer {
+  private updateFrameId: number | null = null;
+
+  scheduleTracklistUpdate(): void {
+    if (this.updateFrameId !== null) {
+      return;
+    }
+
+    this.updateFrameId = window.requestAnimationFrame(() => {
+      this.updateFrameId = null;
+      this.updateTracklist();
+    });
+  }
+
   /**
    * Updates the tracklist display.
    */
@@ -41,10 +62,6 @@ class TracklistRenderer {
     // Detect tracklist changes
     const newTracklists = getTracklistElements();
     appState.updateTracklists(newTracklists);
-
-    if (appState.hasTracklistsChanged()) {
-      layoutManager.resetLayout();
-    }
 
     // Process each tracklist
     for (const tracklist of state.tracklists) {
@@ -58,39 +75,87 @@ class TracklistRenderer {
    * Processes a single tracklist.
    */
   private processTracklist(tracklist: Element): void {
-    const tracks = getTrackRowElements(tracklist);
+    const tracklistElement = tracklist as HTMLElement;
+    layoutManager.clearTracklistGridLayout(tracklistElement);
 
+    const tracks = Array.from(getTrackRowElements(tracklist)) as HTMLElement[];
+    const trackRows: TrackRowRenderData[] = [];
     for (const track of tracks) {
-      this.processTrackRow(track as HTMLElement);
+      this.updateRowHeightIfNeeded(track);
+
+      const trackUri = getTracklistTrackUri(track);
+      if (!trackUri) {
+        continue;
+      }
+
+      this.handleTrackHighlight(track, trackUri);
+
+      const filteredPlaylistData = filterPlaylistData(
+        this.getPlaylistData(trackUri),
+        appState.getState().showAllPlaylists,
+      );
+
+      trackRows.push({
+        track,
+        trackUri,
+        filteredPlaylistData,
+      });
+    }
+
+    const maxPlaylistCount = trackRows.reduce(
+      (maxCount: number, row: TrackRowRenderData) =>
+        Math.max(maxCount, row.filteredPlaylistData.length),
+      0,
+    );
+
+    const tracklistLayout = layoutManager.calculateTracklistLabelLayout(
+      tracklistElement,
+      maxPlaylistCount,
+    );
+    this.applyTracklistGridLayout(tracklistElement, tracklistLayout);
+    const renderLayout = this.resolveTracklistRenderLayout(
+      tracklistElement,
+      trackRows,
+      tracklistLayout,
+      maxPlaylistCount,
+    );
+
+    for (const { track, trackUri, filteredPlaylistData } of trackRows) {
+      this.handleLabelContainer(
+        track,
+        trackUri,
+        filteredPlaylistData,
+        renderLayout,
+      );
     }
   }
 
   /**
-   * Processes a single track row.
+   * Applies the dedicated playlist-label grid column to the tracklist.
    */
-  private processTrackRow(track: HTMLElement): void {
-    const state = appState.getState();
+  private applyTracklistGridLayout(
+    tracklist: HTMLElement,
+    tracklistLayout: TracklistLabelLayout,
+  ): void {
+    const gridElements = Array.from(
+      tracklist.querySelectorAll(".main-trackList-trackListRowGrid"),
+    ) as HTMLElement[];
 
-    // Update row height
-    this.updateRowHeightIfNeeded(track);
+    if (!tracklistLayout.gridTemplateColumns) {
+      for (const element of gridElements) {
+        element.style.removeProperty("grid-template-columns");
+        this.clearExplicitGridColumns(element);
+      }
+      this.removeHeaderPlaceholders(tracklist);
+      return;
+    }
 
-    const trackUri = getTracklistTrackUri(track);
-    if (!trackUri) return;
+    for (const element of gridElements) {
+      element.style.gridTemplateColumns = tracklistLayout.gridTemplateColumns;
+      this.applyExplicitGridColumns(element);
+    }
 
-    // Handle highlighted track
-    this.handleTrackHighlight(track, trackUri);
-
-    // Get playlist data for rendering
-    const filteredPlaylistData = filterPlaylistData(
-      this.getPlaylistData(trackUri),
-      state.showAllPlaylists,
-    );
-
-    // Update CSS variables
-    layoutManager.updateMaxExistingLabelCount(filteredPlaylistData.length);
-
-    // Handle label container
-    this.handleLabelContainer(track, trackUri, filteredPlaylistData);
+    this.ensureHeaderPlaceholders(tracklist);
   }
 
   /**
@@ -142,6 +207,7 @@ class TracklistRenderer {
     track: HTMLElement,
     trackUri: string,
     filteredPlaylistData: PlaylistData[],
+    tracklistLayout: TracklistLabelLayout,
   ): void {
     const state = appState.getState();
     let labelContainer = track.querySelector(
@@ -154,9 +220,152 @@ class TracklistRenderer {
       labelContainer = null;
     }
 
+    if (tracklistLayout.maxLabelCount < 1 || tracklistLayout.columnWidth < 1) {
+      if (labelContainer) {
+        labelContainer.remove();
+      }
+      return;
+    }
+
+    if (!labelContainer) {
+      labelContainer = createLabelContainer();
+      insertLabelContainer(track, labelContainer);
+    }
+
+    if (filteredPlaylistData.length < 1) {
+      this.renderEmptyLabelCell(labelContainer, tracklistLayout.maxLabelCount);
+      return;
+    }
+
+    const layoutSignature = `${tracklistLayout.maxLabelCount}`;
+    const shouldRender =
+      !labelContainer.hasChildNodes() ||
+      labelContainer.dataset.layoutSignature !== layoutSignature;
+
     // Create or update the label container
-    if (!labelContainer && filteredPlaylistData.length > 0) {
-      this.createAndRenderLabels(track, trackUri, filteredPlaylistData);
+    if (shouldRender) {
+      this.createAndRenderLabels(
+        track,
+        trackUri,
+        filteredPlaylistData,
+        tracklistLayout.maxLabelCount,
+        labelContainer,
+      );
+    }
+  }
+
+  private renderEmptyLabelCell(
+    labelContainer: HTMLElement,
+    maxLabelCount: number,
+  ): void {
+    const layoutSignature = `empty:${maxLabelCount}`;
+    if (labelContainer.dataset.layoutSignature === layoutSignature) {
+      return;
+    }
+
+    ReactDOM.unmountComponentAtNode(labelContainer);
+    labelContainer.replaceChildren();
+    labelContainer.dataset.layoutSignature = layoutSignature;
+  }
+
+  private ensureHeaderPlaceholders(tracklist: HTMLElement): void {
+    const nonTrackRows = Array.from(
+      tracklist.querySelectorAll(".main-trackList-trackListRowGrid"),
+    ).filter(
+      (element) => !element.classList.contains("main-trackList-trackListRow"),
+    ) as HTMLElement[];
+
+    for (const row of nonTrackRows) {
+      const lastColumn = row.querySelector(
+        CONFIG.SELECTORS.LAST_COLUMN,
+      ) as HTMLElement | null;
+      if (!lastColumn) {
+        continue;
+      }
+
+      const placeholder = row.querySelector(
+        `.${CSS_CLASSES.LABEL_HEADER_PLACEHOLDER}`,
+      ) as HTMLElement | null;
+      if (!placeholder) {
+        row.insertBefore(createLabelHeaderPlaceholder(), lastColumn);
+      }
+    }
+  }
+
+  private removeHeaderPlaceholders(tracklist: HTMLElement): void {
+    const placeholders = tracklist.querySelectorAll(
+      `.${CSS_CLASSES.LABEL_HEADER_PLACEHOLDER}`,
+    );
+    for (const placeholder of placeholders) {
+      placeholder.remove();
+    }
+  }
+
+  private resolveTracklistRenderLayout(
+    tracklist: HTMLElement,
+    trackRows: TrackRowRenderData[],
+    tracklistLayout: TracklistLabelLayout,
+    maxPlaylistCount: number,
+  ): TracklistLabelLayout {
+    if (tracklistLayout.maxLabelCount < 1 || tracklistLayout.columnWidth < 1) {
+      return tracklistLayout;
+    }
+
+    const measuredColumnWidth = this.measureTracklistLabelColumnWidth(
+      trackRows,
+      tracklist,
+      tracklistLayout.columnWidth,
+    );
+    const resolvedLayout = layoutManager.resolveLabelRenderLayout(
+      maxPlaylistCount,
+      measuredColumnWidth,
+    );
+
+    if (resolvedLayout.maxLabelCount < 1 || resolvedLayout.columnWidth < 1) {
+      return {
+        ...tracklistLayout,
+        maxLabelCount: 0,
+        columnWidth: 0,
+      };
+    }
+
+    return {
+      ...tracklistLayout,
+      maxLabelCount: resolvedLayout.maxLabelCount,
+      columnWidth: measuredColumnWidth,
+    };
+  }
+
+  private measureTracklistLabelColumnWidth(
+    trackRows: TrackRowRenderData[],
+    tracklist: HTMLElement,
+    fallbackWidth: number,
+  ): number {
+    if (!trackRows.some((row) => row.filteredPlaylistData.length > 0)) {
+      return fallbackWidth;
+    }
+
+    const placeholder = tracklist.querySelector(
+      `.${CSS_CLASSES.LABEL_HEADER_PLACEHOLDER}`,
+    ) as HTMLElement | null;
+    const measuredWidth = Math.floor(
+      (placeholder ?? null)?.getBoundingClientRect().width ?? 0,
+    );
+
+    return measuredWidth > 0 ? measuredWidth : fallbackWidth;
+  }
+
+  private applyExplicitGridColumns(row: HTMLElement): void {
+    const directChildren = Array.from(row.children) as HTMLElement[];
+    for (const [index, child] of directChildren.entries()) {
+      child.style.gridColumn = `${index + 1}`;
+    }
+  }
+
+  private clearExplicitGridColumns(row: HTMLElement): void {
+    const directChildren = Array.from(row.children) as HTMLElement[];
+    for (const child of directChildren) {
+      child.style.removeProperty("grid-column");
     }
   }
 
@@ -167,15 +376,17 @@ class TracklistRenderer {
     track: HTMLElement,
     trackUri: string,
     filteredPlaylistData: PlaylistData[],
+    maxLabelCount: number,
+    existingContainer?: HTMLElement | null,
   ): void {
     const state = appState.getState();
-    const labelContainer = createLabelContainer();
+    const labelContainer = existingContainer ?? createLabelContainer();
 
     ReactDOM.render(
       <PlaylistLabelsContainer
         playlistData={filteredPlaylistData}
         trackUri={trackUri}
-        maxLabelCount={state.maxLabelCount}
+        maxLabelCount={maxLabelCount}
         showAllPlaylists={state.showAllPlaylists}
         onRemoveTrack={this.handleRemoveTrack}
         onNavigateToPlaylist={this.handleNavigateToPlaylist}
@@ -184,7 +395,7 @@ class TracklistRenderer {
       labelContainer,
     );
 
-    insertLabelContainer(track, labelContainer);
+    labelContainer.dataset.layoutSignature = `${maxLabelCount}`;
   }
 
   /**
@@ -211,7 +422,7 @@ class TracklistRenderer {
     }
 
     appState.markPlaylistUpdated();
-    this.updateTracklist();
+    this.scheduleTracklistUpdate();
   };
 
   /**
@@ -245,7 +456,7 @@ class TracklistRenderer {
       JSON.stringify(newShowAllState),
     );
     appState.markPlaylistUpdated();
-    this.updateTracklist();
+    this.scheduleTracklistUpdate();
   };
 }
 
@@ -265,7 +476,7 @@ async function observerCallback(): Promise<void> {
       mainElementObserver.disconnect();
     }
 
-    tracklistRenderer.updateTracklist();
+    tracklistRenderer.scheduleTracklistUpdate();
 
     // Start observing the new main element
     if (state.mainElement) {
@@ -303,7 +514,7 @@ async function main(): Promise<void> {
     promise.then((data) => {
       appState.setTrackUriToPlaylistData(data);
       appState.markPlaylistUpdated();
-      tracklistRenderer.updateTracklist();
+      tracklistRenderer.scheduleTracklistUpdate();
     });
   };
 
@@ -350,7 +561,7 @@ async function setupEventListeners(
 function setupObservers(): void {
   // Main element observer
   mainElementObserver = new MutationObserver(() => {
-    tracklistRenderer.updateTracklist();
+    tracklistRenderer.scheduleTracklistUpdate();
   });
 
   // Page observer
@@ -363,7 +574,7 @@ function setupObservers(): void {
 
   // Resize observer
   const resizeObserver = new ResizeObserver(() => {
-    layoutManager.calculateMaxLabelCount();
+    tracklistRenderer.scheduleTracklistUpdate();
   });
 
   const mainView = appState.getState().mainView;
