@@ -40,6 +40,16 @@ jobs:
         id: build
         run: npm run build:ci
 
+      - name: Upload build artifact
+        id: upload-artifact
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-build-dist-${{ github.event.pull_request.number }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Comment build result
         if: ${{ always() }}
         continue-on-error: true
@@ -50,6 +60,9 @@ jobs:
           SETUP_NODE_OUTCOME: ${{ steps.setup-node.outcome }}
           INSTALL_OUTCOME: ${{ steps.install.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
+          ARTIFACT_OUTCOME: ${{ steps.upload-artifact.outcome }}
+          ARTIFACT_URL: ${{ steps.upload-artifact.outputs.artifact-url }}
+          ARTIFACT_ID: ${{ steps.upload-artifact.outputs.artifact-id }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RUN_NUMBER: ${{ github.run_number }}
         with:
@@ -64,6 +77,7 @@ jobs:
               ['Setup Node.js', process.env.SETUP_NODE_OUTCOME],
               ['Install dependencies', process.env.INSTALL_OUTCOME],
               ['Build dist', process.env.BUILD_OUTCOME],
+              ['Upload build artifact', process.env.ARTIFACT_OUTCOME],
             ];
 
             const failedSteps = stepOutcomes.filter(
@@ -76,12 +90,18 @@ jobs:
                   .join(', ')}\n`
               : '';
 
+            const artifactLine =
+              process.env.ARTIFACT_URL && process.env.ARTIFACT_ID
+                ? `- Artifact: [Download dist zip](${process.env.ARTIFACT_URL}) (ID: \`${process.env.ARTIFACT_ID}\`)\n`
+                : '- Artifact: Not available for this run\n';
+
             const body = `${marker}
             ## PR Build Result ${statusEmoji}
 
             - Status: ${statusLabel}
             - Commit: \`${context.payload.pull_request.head.sha.slice(0, 7)}\`
-            - Workflow run: [#${process.env.RUN_NUMBER}](${process.env.RUN_URL})
+            - Workflow run: [View run #${process.env.RUN_NUMBER}](${process.env.RUN_URL})
+            ${artifactLine}
             - Commands: \`npm ci --no-audit --no-fund\`, \`npm run build:ci\`
             ${failedStepsLine}`.replace(/^ {12}/gm, '').trim();
 
