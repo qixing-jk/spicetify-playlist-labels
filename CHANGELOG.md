@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.4.0...v1.5.0) (2026-04-07)
+
+
+### Features
+
+* **layout:** implement overflow-aware label clipping logic ([c3cc5ff](https://github.com/qixing-jk/spicetify-playlist-labels/commit/c3cc5ff1b8a66f24841955e859ace651815b0033))
+
 ## [1.4.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.3.0...v1.4.0) (2026-04-06)
 
 
