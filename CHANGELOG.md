@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.5.0...v1.5.1) (2026-07-05)
+
+
+### Bug Fixes
+
+* **layout:** prevent playlist label column drift ([#20](https://github.com/qixing-jk/spicetify-playlist-labels/issues/20)) ([dc2245e](https://github.com/qixing-jk/spicetify-playlist-labels/commit/dc2245e00251239e15c2bb8eab4ef822cedf9d20))
+
 ## [1.5.0](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.4.0...v1.5.0) (2026-04-07)
 
 
