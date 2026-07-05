@@ -1,4 +1,4 @@
-import { CONFIG } from "../constants";
+import { CONFIG, CSS_CLASSES } from "../constants";
 import { appState } from "../state/AppState";
 import { updateCSSVariable } from "../utils/dom";
 
@@ -36,7 +36,11 @@ export class LayoutManager {
       ".main-trackList-trackListRowGrid",
     );
     for (const element of gridElements) {
-      (element as HTMLElement).style.removeProperty("grid-template-columns");
+      const row = element as HTMLElement;
+      row.style.removeProperty("grid-template-columns");
+      for (const child of Array.from(row.children) as HTMLElement[]) {
+        child.style.removeProperty("grid-column");
+      }
     }
   }
 
@@ -163,7 +167,7 @@ export class LayoutManager {
       index,
       width: this.parsePixelValue(column),
     }));
-    const rowChildren = Array.from(sampleRow.children) as HTMLElement[];
+    const rowChildren = this.getNativeRowChildren(sampleRow);
 
     const donorColumns = parsedColumns
       .slice(1, -1)
@@ -204,7 +208,17 @@ export class LayoutManager {
       return null;
     }
 
-    return [...rebalancedWidths, `${labelColumnWidth}px`, lastColumn];
+    return [
+      ...rebalancedWidths,
+      `minmax(0, ${labelColumnWidth}px)`,
+      lastColumn,
+    ];
+  }
+
+  private getNativeRowChildren(row: HTMLElement): HTMLElement[] {
+    return Array.from(row.children).filter(
+      (child) => !child.classList.contains(CSS_CLASSES.LABEL_CONTAINER),
+    ) as HTMLElement[];
   }
 
   private getGridItemMinimumWidth(element: HTMLElement | undefined): number {

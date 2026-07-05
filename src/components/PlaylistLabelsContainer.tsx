@@ -225,13 +225,7 @@ export const PlaylistLabelsContainer: React.FC<
   const shouldShowOverflowButton = hasOverflow && canRenderOverflowButton;
 
   return (
-    <div
-      className={CSS_CLASSES.LABELS_CONTAINER}
-      style={{
-        width: "100%",
-        maxWidth: "100%",
-      }}
-    >
+    <div className={CSS_CLASSES.LABELS_CONTAINER}>
       {displayedData.map((data) => (
         <PlaylistLabel
           key={data.uri || "liked-tracks"}
