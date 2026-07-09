@@ -89,6 +89,11 @@ export class LayoutManager {
       Math.min(maxPlaylistCount, CONFIG.MAX_POSSIBLE_LABEL_COUNT),
     );
     const columnGap = this.parsePixelValue(sampleRowStyle.columnGap);
+    const maxLabelColumnWidth = this.getMaxLabelColumnWidth(
+      sampleRow,
+      baseColumns,
+      columnGap,
+    );
 
     for (let candidate = baseMaxLabelCount; candidate >= 1; candidate--) {
       const renderLayout = this.getRenderLayout(
@@ -96,6 +101,10 @@ export class LayoutManager {
         maxPlaylistCount,
         labelSize,
       );
+      if (renderLayout.columnWidth > maxLabelColumnWidth) {
+        continue;
+      }
+
       const adjustedColumns = this.allocateLabelColumn(
         sampleRow,
         baseColumns,
@@ -155,6 +164,39 @@ export class LayoutManager {
       maxLabelCount: 0,
       columnWidth: 0,
     };
+  }
+
+  private getMaxLabelColumnWidth(
+    sampleRow: HTMLElement,
+    columns: string[],
+    columnGap: number,
+  ): number {
+    const adjacentColumnIndex = columns.length - 2;
+    const adjacentColumnWidth = this.parsePixelValue(
+      columns[adjacentColumnIndex],
+    );
+    const nativeChildren = this.getNativeRowChildren(sampleRow);
+    const adjacentMinimumWidth = Math.max(
+      this.getGridItemMinimumWidth(nativeChildren[adjacentColumnIndex]),
+      this.getConfiguredColumnMinimumWidth(
+        sampleRow,
+        nativeChildren,
+        columns.length,
+        adjacentColumnIndex,
+      ),
+    );
+    const trailingColumn = columns[columns.length - 1];
+    const trailingColumnWidth = this.parsePixelValue(trailingColumn);
+    const trailingColumnCap =
+      trailingColumnWidth > 0
+        ? trailingColumnWidth + columnGap
+        : Number.POSITIVE_INFINITY;
+    const adjacentSpareWidth =
+      adjacentMinimumWidth > 0
+        ? Math.max(adjacentColumnWidth - adjacentMinimumWidth + columnGap, 0)
+        : 0;
+
+    return Math.max(trailingColumnCap, adjacentSpareWidth);
   }
 
   private allocateLabelColumn(
@@ -219,6 +261,43 @@ export class LayoutManager {
     return Array.from(row.children).filter(
       (child) => !child.classList.contains(CSS_CLASSES.LABEL_CONTAINER),
     ) as HTMLElement[];
+  }
+
+  private getConfiguredColumnMinimumWidth(
+    row: HTMLElement,
+    nativeChildren: HTMLElement[],
+    columnCount: number,
+    columnIndex: number,
+  ): number {
+    const firstChild = nativeChildren[0];
+    const hasIndexColumn = firstChild?.classList.contains(
+      "main-trackList-rowSectionIndex",
+    );
+    const firstContentColumnIndex = hasIndexColumn ? 1 : 0;
+    let variableName: string | null = null;
+
+    if (hasIndexColumn && columnIndex === 0) {
+      variableName = "--index-column-width";
+    } else if (columnIndex === columnCount - 1) {
+      variableName = "--last-min-width";
+    } else if (columnIndex === firstContentColumnIndex) {
+      variableName = "--first-min-width";
+    } else {
+      const variableColumnIndex = columnIndex - firstContentColumnIndex;
+      variableName =
+        variableColumnIndex > 0
+          ? `--var${variableColumnIndex}-min-width`
+          : null;
+    }
+
+    if (!variableName) {
+      return 0;
+    }
+
+    const tracklist = row.closest(CONFIG.SELECTORS.TRACKLIST);
+    const style = getComputedStyle((tracklist as HTMLElement | null) ?? row);
+
+    return this.parsePixelValue(style.getPropertyValue(variableName));
   }
 
   private getGridItemMinimumWidth(element: HTMLElement | undefined): number {
