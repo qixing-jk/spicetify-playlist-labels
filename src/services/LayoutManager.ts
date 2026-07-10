@@ -176,17 +176,25 @@ export class LayoutManager {
       columns[adjacentColumnIndex],
     );
     const nativeChildren = this.getNativeRowChildren(sampleRow);
-    const adjacentMinimumWidth = Math.max(
-      this.getGridItemMinimumWidth(nativeChildren[adjacentColumnIndex]),
-      this.getConfiguredColumnMinimumWidth(
-        sampleRow,
-        nativeChildren,
-        columns.length,
-        adjacentColumnIndex,
-      ),
+    const adjacentMinimumWidth = this.getColumnMinimumWidth(
+      sampleRow,
+      nativeChildren,
+      columns.length,
+      adjacentColumnIndex,
     );
     const trailingColumn = columns[columns.length - 1];
     const trailingColumnWidth = this.parsePixelValue(trailingColumn);
+    const trailingColumnIndex = columns.length - 1;
+    const trailingMinimumWidth = this.getColumnMinimumWidth(
+      sampleRow,
+      nativeChildren,
+      columns.length,
+      trailingColumnIndex,
+    );
+    const trailingSpareWidth = Math.max(
+      trailingColumnWidth - trailingMinimumWidth,
+      0,
+    );
     const trailingColumnCap =
       trailingColumnWidth > 0
         ? trailingColumnWidth + columnGap
@@ -196,7 +204,7 @@ export class LayoutManager {
         ? Math.max(adjacentColumnWidth - adjacentMinimumWidth + columnGap, 0)
         : 0;
 
-    return Math.max(trailingColumnCap, adjacentSpareWidth);
+    return Math.max(trailingColumnCap, adjacentSpareWidth) + trailingSpareWidth;
   }
 
   private allocateLabelColumn(
@@ -212,24 +220,40 @@ export class LayoutManager {
     const rowChildren = this.getNativeRowChildren(sampleRow);
 
     const donorColumns = parsedColumns
-      .slice(1, -1)
+      .slice(1)
       .map((column) => {
-        const donorElement = rowChildren[column.index];
-        const minimumWidth = this.getGridItemMinimumWidth(donorElement);
+        const minimumWidth = this.getColumnMinimumWidth(
+          sampleRow,
+          rowChildren,
+          columns.length,
+          column.index,
+        );
         return {
-          ...column,
+          column,
           availableReduction: Math.max(column.width - minimumWidth, 0),
         };
       })
       .filter((column) => column.availableReduction > 0)
-      .sort((left, right) => right.width - left.width);
+      .sort((left, right) => {
+        const trailingColumnIndex = columns.length - 1;
+        const adjacentColumnIndex = columns.length - 2;
+        const getPriority = (index: number): number => {
+          if (index === trailingColumnIndex) return 0;
+          if (index === adjacentColumnIndex) return 1;
+          return 2;
+        };
+        const priorityDifference =
+          getPriority(left.column.index) - getPriority(right.column.index);
+
+        return priorityDifference || right.column.width - left.column.width;
+      });
 
     let remainingWidth =
       labelColumnWidth + (columns.length > 1 ? columnGap : 0);
     for (const donor of donorColumns) {
       const reduction = Math.min(donor.availableReduction, remainingWidth);
 
-      donor.width -= reduction;
+      donor.column.width -= reduction;
       remainingWidth -= reduction;
 
       if (remainingWidth <= 0) {
@@ -298,6 +322,23 @@ export class LayoutManager {
     const style = getComputedStyle((tracklist as HTMLElement | null) ?? row);
 
     return this.parsePixelValue(style.getPropertyValue(variableName));
+  }
+
+  private getColumnMinimumWidth(
+    row: HTMLElement,
+    nativeChildren: HTMLElement[],
+    columnCount: number,
+    columnIndex: number,
+  ): number {
+    return Math.max(
+      this.getGridItemMinimumWidth(nativeChildren[columnIndex]),
+      this.getConfiguredColumnMinimumWidth(
+        row,
+        nativeChildren,
+        columnCount,
+        columnIndex,
+      ),
+    );
   }
 
   private getGridItemMinimumWidth(element: HTMLElement | undefined): number {
