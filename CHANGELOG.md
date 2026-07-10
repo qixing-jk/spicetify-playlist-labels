@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.5.1...v1.5.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* constrain playlist label overflow width ([#22](https://github.com/qixing-jk/spicetify-playlist-labels/issues/22)) ([c934b93](https://github.com/qixing-jk/spicetify-playlist-labels/commit/c934b9361ffdd38badfd991c3d817c208717c0a2))
+
 ## [1.5.1](https://github.com/qixing-jk/spicetify-playlist-labels/compare/v1.5.0...v1.5.1) (2026-07-05)
 
 
